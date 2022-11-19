@@ -3,7 +3,8 @@ const { Schema, model } = require("mongoose");
 const schema = new Schema({
     name: { 
         type: String, 
-        required: true 
+        required: true, 
+        unique: true
     },
     startTime: { 
         type: Date, 
@@ -15,9 +16,9 @@ const schema = new Schema({
     },
     room: { 
         type: String, 
-        required: true 
+        required: true
     },
-    // owner: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    owner: { type: Schema.Types.ObjectId, ref: "User", required: true },
 });
 
 module.exports = model("Meeting", schema);

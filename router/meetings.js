@@ -1,15 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const { Meeting } = require('../models')
+const auth = require('../middlewares/auth');
+const { isOwner } = require('../middlewares/guards');
+const meetingsController = require('../controllers/meetings');
 
-router.get('/', (req, res) => {
-    Meeting.find({}).then(meeting => {res.json(meeting);})
+router.get('/', auth(), (req, res) => {
+    Meeting.find({}).then(meeting => { res.json(meeting); })
 });
 
-router.post('/', (req, res) => {
-    const meeting = new Meeting(req.body);
-    meeting.save();
-    res.json(meeting);
-})
+router.post('/', auth(), meetingsController.createMeeting);
+
+router.get('/:id', auth(), isOwner(), meetingsController.getMeeting);
+
 
 module.exports = router;
