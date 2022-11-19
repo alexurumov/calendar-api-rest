@@ -1,3 +1,5 @@
+## Requirements
+
 REST API to serve/edit calendar events
 The purpose of this component is to enable web based clients to manage calendar events (aka meetings).
 
@@ -19,3 +21,20 @@ The API should allow for:
 
 For simplicity, you could assume there is only one meeting owner (user).
 
+### INITIAL SETUP
+Run in terminal following initial commands: 
+npm i -> to install dependencies
+npm start -> to start the server
+
+## TODO
+
+1. Make init setups [x]
+2. Make server work [x]
+3. Configure endpoints [ ]
+4. Setup DB Models [ ]
+5. Configure controllers and services [ ]
+6. Test CRUD [ ]
+    a. Create a meeting [ ]
+    b. List meetings [ ]
+    c. Edit meeting [ ]
+    d. Delete meeting [ ]
