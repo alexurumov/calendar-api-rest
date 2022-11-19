@@ -28,7 +28,7 @@ npm start -> to start the server
 
 # DUE TO LACK OF CLIENT SERVER IMPLEMENTATION, PLEASE, FOLLOW THE STEPS TO TEST API:
 
-##REGISTER USER: 
+## REGISTER USER: 
 Send POST request with body params: username and password in the following format:
 {
     "username":"someUsername", 
