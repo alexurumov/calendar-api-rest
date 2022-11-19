@@ -20,12 +20,12 @@ async function register(req, res) {
         Trying to save the user in the DB, so DB validation rules can be applied! 
         */
         const savedUser = await user.save();
-        
+
         /*
         Removing the sensitive and non-related props from the User object, so we can return safely to the client! 
         */
         const filteredUser = filterUserObject(savedUser);
-        
+
         /*
         If user has been successfully stored in DB, we generate JWT token from the filtered user object and pass it through a cookie. 
         */
@@ -59,6 +59,40 @@ async function register(req, res) {
     }
 }
 
+async function login(req, res) {
+    const { username, password } = req.body;
+
+    const existing = await User.findOne({ username });
+
+    /*
+    If username and password do not match, we return error message to client!
+    */
+    if (!existing || !password || !existing.matchPassword(password)) {
+        res.status(401).json({ message: 'Wrong login credentials!' });
+    }
+
+    /*
+    Removing the sensitive and non-related props from the User object, so we can return safely to the client! 
+    */
+    const filteredUser = filterUserObject(existing);
+    /*
+    If user authentication has been successful, we generate JWT token from the filtered user object and pass it through a cookie. 
+    */
+    const token = jwt.sign(filteredUser, TOKEN_SECRET, { expiresIn: '1d' });
+    res.cookie(COOKIE_NAME, token, { httpOnly: true });
+    return res.status(200).json(filteredUser);
+}
+
+function logout(req, res) {
+    /*
+    We clear the cookie, so no logged user data is stored! 
+    */
+    res.clearCookie(COOKIE_NAME); 
+    res.status(204).json({ message: 'Logged out!' });
+}
+
 module.exports = {
     register,
+    login,
+    logout
 }

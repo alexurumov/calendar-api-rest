@@ -32,4 +32,10 @@ schema.pre('save', async function (next) {
     }
 })
 
+schema.methods = {
+    matchPassword: function (password) {
+        return bcrypt.compare(password, this.password);
+    }
+}
+
 module.exports = model("User", schema);
