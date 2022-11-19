@@ -42,12 +42,12 @@ If body params are present and there is no duplication in Users DB, register wil
 3. Configure endpoints [x]
 4. Setup DB Models [x]
 5. Configure controllers [x]
-6. Test CRUD [x]
+6. Implement user creation and authentication
+    a. Register [x]
+    b. Login [ ]
+    c. Logout [ ]
+7. Test CRUD
     a. Create a meeting [x]
     b. List meetings [ ]
     c. Edit meeting [ ]
     d. Delete meeting [ ]
-7. Implement user creation and authentication
-    a. Register [x]
-    b. Login [ ]
-    c. Logout [ ]
