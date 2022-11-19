@@ -1,0 +1,20 @@
+{
+  "name": "calendar-api",
+  "version": "1.0.0",
+  "description": "REST API to serve/edit calendar events The purpose of this component is to enable web based clients to manage calendar events (aka meetings).",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexurumov/calendar-api-rest.git"
+  },
+  "keywords": [],
+  "author": "alexurumov",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/alexurumov/calendar-api-rest/issues"
+  },
+  "homepage": "https://github.com/alexurumov/calendar-api-rest#readme"
+}
