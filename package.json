@@ -4,7 +4,7 @@
   "description": "REST API to serve/edit calendar events The purpose of this component is to enable web based clients to manage calendar events (aka meetings).",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1", 
+    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node ."
   },
   "repository": {
@@ -19,7 +19,9 @@
   },
   "homepage": "https://github.com/alexurumov/calendar-api-rest#readme",
   "dependencies": {
+    "cors": "^2.8.5",
     "dotenv": "^16.0.3",
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "mongoose": "^6.7.2"
   }
 }
