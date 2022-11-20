@@ -54,7 +54,7 @@ Send POST request to /api/meetings with following body format:
 {
     "name": "some name", 
     "room": "some room", 
-    "startTime": "some date", 
+    "startTime": "some date", format: {{year}-{month}-{day}T{hours}:{minutes}:{seconds}.{timezone}Z}
     "endTime": "some date"
 }
 Name must be unique! Start and end time must not conflict with existing meetings in the room! 
@@ -65,8 +65,14 @@ Example: /api/meetings/637a17fe6cd08cc45af852c7
 A guard is implemented to show details for meetings you are only the owner of! 
 
 ## MEETINGS PUT/:id -> edit an existing meeting
-Send PUT request to /api/meetings with querry param = the id of the meeting you want to edit
+Send PUT request to /api/meetings with querry param = the id of the meeting you want to edit and the body with updated fields
 Example: /api/meetings/637a17fe6cd08cc45af852c7
+{
+    "name": "some name", 
+    "room": "some room", 
+    "startTime": "some date", format: {{year}-{month}-{day}T{hours}:{minutes}:{seconds}.{timezone}Z}
+    "endTime": "some date"
+}
 A guard is implemented to show details for meetings you are only the owner of! 
 
 ## MEETINGS DELETE/:id -> remove a particular meeting
@@ -101,7 +107,7 @@ A guard is implemented to show meetings you are only the owner of!
     b. List a meeting (if owner) [x]
     c. List today meetings [ ] (if owner)
     d. List past meetings [ ] (if owner)
-    e. Edit meeting [ ] (if owner)
+    e. Edit meeting [x] (if owner)
     f. Delete meeting [ ] (if owner)
 8. Make middlewares
     a. Auth [x]

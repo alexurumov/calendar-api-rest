@@ -12,5 +12,7 @@ router.post('/', auth(), meetingsController.createMeeting);
 
 router.get('/:id', auth(), isOwner(), meetingsController.getMeeting);
 
+router.put('/:id', auth(), isOwner(), meetingsController.editMeeting);
+
 
 module.exports = router;
