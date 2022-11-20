@@ -5,6 +5,16 @@ const apiRouter = require('./router');
 require('dotenv').config();
 const PORT  = process.env.PORT || 5555; 
 
+const options = {
+        etag: false,
+        index: false,
+        maxAge: '1d',
+        redirect: false,
+        setHeaders: function (res, path, stat) {
+                res.set('x-timestamp', Date.now())
+        }
+};
+
 start();
 
 async function start() {
