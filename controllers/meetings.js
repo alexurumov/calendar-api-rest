@@ -90,6 +90,46 @@ async function getMeeting(req, res) {
     }
 }
 
+function getAllMeetings(req, res) {
+    res.status(200).json(req.user.meetings);
+}
+
+async function getFilteredMeetings(req, res) {
+    const filter = req.params.filter;
+    const todayStart = new Date();
+    todayStart.setHours(0);
+    todayStart.setMinutes(0);
+    todayStart.setSeconds(0);
+
+    const todayEnd = new Date();
+    todayEnd.setHours(23);
+    todayEnd.setMinutes(59);
+    todayEnd.setSeconds(59);
+    let meetings;
+    switch (filter.toLocaleLowerCase()) {
+        case 'past':
+            meetings = req.user.meetings
+                .filter(mtng => new Date(mtng.endTime) < todayStart);
+            break;
+        case 'today':
+            meetings = req.user.meetings
+                .filter(mtng => new Date(mtng.startTime) >= todayStart && new Date(mtng.endTime) <= todayEnd);
+            break;
+        case 'future':
+            meetings = req.user.meetings
+                .filter(mtng => new Date(mtng.startTime) > todayEnd);
+            break;
+        default:
+            meetings = undefined;
+            break;
+    }
+    if (meetings) {
+        res.status(200).json(meetings);
+    } else {
+        res.status(200).send({ message: 'No meetings to list!' });
+    }
+}
+
 async function editMeeting(req, res) {
     const meetingId = req.params.id;
     const updatedMeetingDetails = req.body;
@@ -161,6 +201,8 @@ async function removeMeeting(req, res) {
 module.exports = {
     createMeeting,
     getMeeting,
-    editMeeting, 
-    removeMeeting
+    editMeeting,
+    removeMeeting,
+    getAllMeetings,
+    getFilteredMeetings
 }

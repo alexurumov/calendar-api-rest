@@ -4,9 +4,9 @@ const auth = require('../middlewares/auth');
 const { isOwner } = require('../middlewares/guards');
 const meetingsController = require('../controllers/meetings');
 
-router.get('/', auth(), (req, res) => {
-    Meeting.find({}).then(meeting => { res.json(meeting); })
-});
+router.get('/', auth(), meetingsController.getAllMeetings);
+
+router.get('/:filter', auth(), meetingsController.getFilteredMeetings);
 
 router.post('/', auth(), meetingsController.createMeeting);
 

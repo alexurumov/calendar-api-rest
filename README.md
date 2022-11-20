@@ -105,10 +105,11 @@ A guard is implemented to show meetings you are only the owner of!
 7. Test CRUD
     a. Create a meeting [x] -> avoid duplication [x]
     b. List a meeting (if owner) [x]
-    c. List today meetings [ ] (if owner)
-    d. List past meetings [ ] (if owner)
-    e. Edit meeting [x] (if owner)
-    f. Delete meeting [x] (if owner)
+    c. List today meetings [x] (if owner)
+    d. List past meetings [x] (if owner)
+    e. List future meetings [x] (if owner)
+    f. Edit meeting [x] (if owner)
+    g. Delete meeting [x] (if owner)
 8. Make middlewares
     a. Auth [x]
     b. Guards [x]

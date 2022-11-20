@@ -9,6 +9,7 @@ const {filterObject, bsonConvertObject} = require('../utils');
 Middleware that checks if there is a logged in user and if it's JWT token is valid
 */
 module.exports = () => async (req, res, next) => {
+
     try {
         const token = req.cookies[COOKIE_NAME];
         const { _id } = jwt.verify(token, TOKEN_SECRET);

@@ -55,6 +55,7 @@ async function register(req, res) {
 }
 
 async function login(req, res) {
+    debugger;
     const { username, password } = req.body;
 
     const existing = await User.findOne({ username });
