@@ -73,3 +73,4 @@ Send POST request to /api/users/logout (no body needed) and JWT Token with UserD
     a. FilterObject [x]
     b. BsonToJson [x]
 10. Refactor response statuses 
+11. Complete README for endpoints and actions
