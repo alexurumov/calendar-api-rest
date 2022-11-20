@@ -1,26 +1,26 @@
 const { Meeting, User } = require('../models');
 
-const ERROR_MESSAGE = 'NO MEETING FOUND!'
+// const ERROR_MESSAGE = 'NO MEETING FOUND!'
 
 /*
 Helper function to check if there are conflicting meetings! 
 */
-function hasConflictingMeetings (req, meeting) {
+function hasConflictingMeetings(req, meeting) {
     const existingMeetings = req.user.meetings;
     if (existingMeetings.length < 1) {
         return false;
     }
-    const sameRoomMeetings = existingMeetings.filter(mtng => mtng.room === meeting.room); 
+    const sameRoomMeetings = existingMeetings.filter(mtng => mtng.room === meeting.room);
     if (sameRoomMeetings.length < 1) {
         return false;
     }
-    const conflictingMeetings = sameRoomMeetings.filter((mtng) =>  {
-        const currentStartTime = new Date (mtng.startTime);
-        const currentEndTime = new Date (mtng.endTime);
+    const conflictingMeetings = sameRoomMeetings.filter((mtng) => {
+        const currentStartTime = new Date(mtng.startTime);
+        const currentEndTime = new Date(mtng.endTime);
         const newStartTime = new Date(meeting.startTime);
         const newEndTime = new Date(meeting.endTime);
         return (newStartTime >= currentStartTime && newStartTime <= currentEndTime)
-        || (newEndTime >= currentStartTime && newEndTime <= currentEndTime); 
+            || (newEndTime >= currentStartTime && newEndTime <= currentEndTime);
     });
     return conflictingMeetings.length < 1 ? false : true;
 }
@@ -78,23 +78,23 @@ async function createMeeting(req, res) {
     }
 }
 
-async function getMeeting (req, res) {
+async function getMeeting(req, res) {
     const meetingId = req.params.id;
     try {
-        const meeting = await Meeting.findById({_id: meetingId});
+        const meeting = await Meeting.findById({ _id: meetingId });
         res.status(200).json(meeting);
     }
     catch (err) {
         debugger;
-        res.status(404).send({message: 'No such meeting found!'});
+        res.status(404).send({ message: 'No such meeting found!' });
     }
 }
 
-async function editMeeting (req, res) {
+async function editMeeting(req, res) {
     const meetingId = req.params.id;
     const updatedMeetingDetails = req.body;
     try {
-        const meeting = await Meeting.findById({_id: meetingId});
+        const meeting = await Meeting.findById({ _id: meetingId });
         /*
         If Error is our custom one above, we know it is wrong! >>> This is prevented by the isOwner Guard!
         */
@@ -145,8 +145,22 @@ async function editMeeting (req, res) {
     }
 }
 
+async function removeMeeting(req, res) {
+    const meetingId = req.params.id;
+    const meeting = await Meeting.findById({ _id: meetingId });
+    /*
+    If Error is our custom one above, we know it is wrong! >>> This is prevented by the isOwner Guard!
+    */
+    // if (!meeting) {
+    //     throw new Error(ERROR_MESSAGE);
+    // }   
+    await meeting.deleteOne();
+    res.status(200).json(meeting);
+}
+
 module.exports = {
-    createMeeting, 
-    getMeeting, 
-    editMeeting
+    createMeeting,
+    getMeeting,
+    editMeeting, 
+    removeMeeting
 }

@@ -14,5 +14,7 @@ router.get('/:id', auth(), isOwner(), meetingsController.getMeeting);
 
 router.put('/:id', auth(), isOwner(), meetingsController.editMeeting);
 
+router.delete('/:id', auth(), isOwner(), meetingsController.removeMeeting);
+
 
 module.exports = router;

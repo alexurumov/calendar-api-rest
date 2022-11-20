@@ -108,7 +108,7 @@ A guard is implemented to show meetings you are only the owner of!
     c. List today meetings [ ] (if owner)
     d. List past meetings [ ] (if owner)
     e. Edit meeting [x] (if owner)
-    f. Delete meeting [ ] (if owner)
+    f. Delete meeting [x] (if owner)
 8. Make middlewares
     a. Auth [x]
     b. Guards [x]
