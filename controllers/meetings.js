@@ -5,8 +5,11 @@ const { Meeting, User } = require('../models');
 /*
 Helper function to check if there are conflicting meetings! 
 */
-function hasConflictingMeetings(req, meeting) {
-    const existingMeetings = req.user.meetings;
+function hasConflictingMeetings(req, meeting, edit) {
+    let existingMeetings = req.user.meetings;
+    if (edit) {
+        existingMeetings = existingMeetings.filter(mtng => mtng.name !== meeting.name);
+    }
     if (existingMeetings.length < 1) {
         return false;
     }
@@ -25,6 +28,11 @@ function hasConflictingMeetings(req, meeting) {
     return conflictingMeetings.length < 1 ? false : true;
 }
 
+function hasCorrectTime(meeting) {
+    return new Date(meeting.startTime) < new Date(meeting.endTime);
+}
+
+
 async function createMeeting(req, res) {
     const meeting = new Meeting(req.body);
     meeting.owner = req.user._id;
@@ -33,8 +41,12 @@ async function createMeeting(req, res) {
     /*
     Check for conflict with existing meetings! 
     */
-    if (hasConflictingMeetings(req, meeting)) {
+    if (hasConflictingMeetings(req, meeting, false)) {
         res.status(409).send({ message: 'Another meeting in the same room has already been scheduled in this time frame!' });
+        return;
+    }
+    if (!hasCorrectTime(meeting)) {
+        res.status(400).send({ message: 'Start time cannot be later than End time!' });
         return;
     }
     try {
@@ -120,10 +132,11 @@ async function getFilteredMeetings(req, res) {
                 .filter(mtng => new Date(mtng.startTime) > todayEnd);
             break;
         default:
-            meetings = undefined;
-            break;
+            res.status(404).send({ message: 'Invalid Filter'});
+            return;
     }
-    if (meetings) {
+
+    if (meetings.length > 0) {
         res.status(200).json(meetings);
     } else {
         res.status(200).send({ message: 'No meetings to list!' });
@@ -146,8 +159,12 @@ async function editMeeting(req, res) {
         /*
         Check for conflict with existing meetings! 
         */
-        if (hasConflictingMeetings(req, meeting)) {
+        if (hasConflictingMeetings(req, meeting, true)) {
             res.status(409).send({ message: 'Another meeting in the same room has already been scheduled in this time frame!' });
+            return;
+        }
+        if (!hasCorrectTime(meeting)) {
+            res.status(400).send({ message: 'Start time cannot be later than End time!' });
             return;
         }
         const updated = await meeting.save();
