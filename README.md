@@ -60,14 +60,16 @@ Send POST request to /api/users/logout (no body needed) and JWT Token with UserD
     b. Login [x]
     c. Logout [x]
 7. Test CRUD
-    a. Create a meeting [x]
+    a. Create a meeting [x] -> avoid duplication
     b. List a meeting (if owner) [x]
-    c. List meetings [ ]
-    d. Edit meeting [ ]
-    e. Delete meeting [ ]
+    c. List today meetings [ ] (if owner)
+    d. List past meetings [ ] (if owner)
+    e. Edit meeting [ ] (if owner)
+    f. Delete meeting [ ] (if owner)
 8. Make middlewares
     a. Auth [x]
     b. Guards [x]
 9. Make utils
     a. FilterObject [x]
     b. BsonToJson [x]
+10. Refactor response statuses 
