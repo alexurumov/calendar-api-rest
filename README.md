@@ -48,6 +48,43 @@ If body params are present and there is an exact same user with the same data in
 Send POST request to /api/users/logout (no body needed) and JWT Token with UserData obj will be removed from the AUTH_COOKIE. 
 
 #### We implement basic user CRUD and auth, so we can successfully implement Meetings creation with owner! 
+
+## MEETINGS CREATE
+Send POST request to /api/meetings with following body format: 
+{
+    "name": "some name", 
+    "room": "some room", 
+    "startTime": "some date", 
+    "endTime": "some date"
+}
+Name must be unique! Start and end time must not conflict with existing meetings in the room! 
+
+## MEETINGS GET/:id -> obtain a particular meeting
+Send GET request to /api/meetings with querry param = the id of the meeting you want to be displayed
+Example: /api/meetings/637a17fe6cd08cc45af852c7
+A guard is implemented to show details for meetings you are only the owner of! 
+
+## MEETINGS PUT/:id -> edit an existing meeting
+Send PUT request to /api/meetings with querry param = the id of the meeting you want to edit
+Example: /api/meetings/637a17fe6cd08cc45af852c7
+A guard is implemented to show details for meetings you are only the owner of! 
+
+## MEETINGS DELETE/:id -> remove a particular meeting
+Send DELETE request to /api/meetings with querry param = the id of the meeting you want to be removed
+Example: /api/meetings/637a17fe6cd08cc45af852c7
+A guard is implemented to show details for meetings you are only the owner of! 
+
+## MEETINGS GET -> get a list of all meetings
+Send GET request to /api/meetings 
+A guard is implemented to show meetings you are only the owner of! 
+
+## MEETINGS GET PAST -> get a list of all meetings you have ever had
+Send GET request to /api/meetings/ with querry param = 'past'
+A guard is implemented to show meetings you are only the owner of! 
+
+## MEETINGS GET TODAY -> get a list of all meetings you have for today
+Send GET request to /api/meetings/ with querry param = 'today'
+A guard is implemented to show meetings you are only the owner of! 
 ## TODO
 
 1. Make init setups [x]
@@ -60,7 +97,7 @@ Send POST request to /api/users/logout (no body needed) and JWT Token with UserD
     b. Login [x]
     c. Logout [x]
 7. Test CRUD
-    a. Create a meeting [x] -> avoid duplication
+    a. Create a meeting [x] -> avoid duplication [x]
     b. List a meeting (if owner) [x]
     c. List today meetings [ ] (if owner)
     d. List past meetings [ ] (if owner)
@@ -72,5 +109,5 @@ Send POST request to /api/users/logout (no body needed) and JWT Token with UserD
 9. Make utils
     a. FilterObject [x]
     b. BsonToJson [x]
-10. Refactor response statuses 
-11. Complete README for endpoints and actions
+10. Refactor response statuses [ ]
+11. Complete README for endpoints and actions [x]

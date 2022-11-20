@@ -1,11 +1,40 @@
 const { Meeting, User } = require('../models');
 
+/*
+Helper function to check if there are conflicting meetings! 
+*/
+function hasConflictingMeetings (req, meeting) {
+    const existingMeetings = req.user.meetings;
+    if (existingMeetings.length < 1) {
+        return false;
+    }
+    const sameRoomMeetings = existingMeetings.filter(mtng => mtng.room === meeting.room); 
+    if (sameRoomMeetings.length < 1) {
+        return false;
+    }
+    const conflictingMeetings = sameRoomMeetings.filter((mtng) =>  {
+        const currentStartTime = new Date (mtng.startTime);
+        const currentEndTime = new Date (mtng.endTime);
+        const newStartTime = new Date(meeting.startTime);
+        const newEndTime = new Date(meeting.endTime);
+        return (newStartTime >= currentStartTime && newStartTime <= currentEndTime)
+        || (newEndTime >= currentStartTime && newEndTime <= currentEndTime); 
+    });
+    return conflictingMeetings.length < 1 ? false : true;
+}
+
 async function createMeeting(req, res) {
     const meeting = new Meeting(req.body);
     meeting.owner = req.user._id;
     const owner = await User.findById(meeting.owner);
-    debugger;
 
+    /*
+    Check for conflict with existing meetings! 
+    */
+    if (hasConflictingMeetings(req, meeting)) {
+        res.status(409).send({ message: 'Another meeting in the same room has already been scheduled in this time frame!' });
+        return;
+    }
     try {
         /*
         Trying to save the meeting in the DB, so DB validation rules can be applied! 
