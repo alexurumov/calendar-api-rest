@@ -116,5 +116,5 @@ A guard is implemented to show meetings you are only the owner of!
 9. Make utils
     a. FilterObject [x]
     b. BsonToJson [x]
-10. Refactor response statuses [ ]
+10. Refactor response statuses [x]
 11. Complete README for endpoints and actions [x]

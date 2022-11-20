@@ -12,6 +12,10 @@ module.exports = () => async (req, res, next) => {
 
     try {
         const token = req.cookies[COOKIE_NAME];
+        if (!token) {
+            next();
+            return;
+        }
         const { _id } = jwt.verify(token, TOKEN_SECRET);
         const user = await User.findById({ _id }).populate('meetings');
         /*

@@ -55,18 +55,19 @@ async function register(req, res) {
 }
 
 async function login(req, res) {
-    debugger;
     const { username, password } = req.body;
-
     const existing = await User.findOne({ username });
-
-    /*
-    If username and password do not match, we return error message to client!
-    */
-    if (!existing || !password || !existing.matchPassword(password)) {
+    
+    if (!existing || !password || password.trim() === '') {
         res.status(401).json({ message: 'Wrong login credentials!' });
+        return;
     }
-
+    const matchPass = await existing.matchPassword(password);
+    
+    if (!matchPass) {
+        res.status(401).json({ message: 'Wrong login credentials!' });
+        return;
+    }
     /*
     Simplifying the object. 
     */

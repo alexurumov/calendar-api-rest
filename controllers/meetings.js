@@ -32,15 +32,14 @@ function hasCorrectTime(meeting) {
     return new Date(meeting.startTime) < new Date(meeting.endTime);
 }
 
-
 async function createMeeting(req, res) {
     const meeting = new Meeting(req.body);
     meeting.owner = req.user._id;
     const owner = await User.findById(meeting.owner);
-
     /*
-    Check for conflict with existing meetings! 
-    */
+     Check for conflict with existing meetings! 
+     */
+
     if (hasConflictingMeetings(req, meeting, false)) {
         res.status(409).send({ message: 'Another meeting in the same room has already been scheduled in this time frame!' });
         return;
@@ -54,6 +53,7 @@ async function createMeeting(req, res) {
         Trying to save the meeting in the DB, so DB validation rules can be applied! 
         */
         const savedMeeting = await meeting.save();
+
         /*
         Adding the meeting to the owner's collection also!
         */
@@ -132,7 +132,7 @@ async function getFilteredMeetings(req, res) {
                 .filter(mtng => new Date(mtng.startTime) > todayEnd);
             break;
         default:
-            res.status(404).send({ message: 'Invalid Filter'});
+            res.status(404).send({ message: 'Invalid Filter' });
             return;
     }
 
@@ -205,12 +205,6 @@ async function editMeeting(req, res) {
 async function removeMeeting(req, res) {
     const meetingId = req.params.id;
     const meeting = await Meeting.findById({ _id: meetingId });
-    /*
-    If Error is our custom one above, we know it is wrong! >>> This is prevented by the isOwner Guard!
-    */
-    // if (!meeting) {
-    //     throw new Error(ERROR_MESSAGE);
-    // }   
     await meeting.deleteOne();
     res.status(200).json(meeting);
 }
