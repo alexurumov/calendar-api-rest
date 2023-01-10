@@ -1,5 +1,13 @@
-const { Schema, model } = require("mongoose");
-const bcrypt = require("bcrypt");
+import {model, Schema} from "mongoose";
+import bcrypt from "bcrypt";
+import {Meeting} from "./Meeting";
+
+export class User {
+    _id?: string | number;
+    username?: string;
+    password?: string;
+    meetings?: Meeting[];
+}
 
 const schema = new Schema({
     username: {
@@ -23,19 +31,20 @@ Hashing password before storing object in DB!
  */
 schema.pre('save', async function (next) {
     try {
-        const hashedPassword = await bcrypt.hash(this.password, 10);
-        this.password = hashedPassword;
+        console.log('only for testing pass:')
+        console.log(this.password)
+        this.password = await bcrypt.hash(this.password, 10);
         next();
     }
     catch (err) {
-        next(err);
+        next(err as NativeError);
     }
 })
 
 schema.methods = {
-    matchPassword: function (password) {
+    matchPassword: function (password: string) {
         return bcrypt.compare(password, this.password);
     }
 }
 
-module.exports = model("User", schema);
+export const userModel = model("User", schema);

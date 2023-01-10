@@ -1,6 +1,16 @@
-const { Schema, model } = require("mongoose");
+import {model, Schema} from "mongoose";
+import {User} from "./User";
 
-const schema = new Schema({
+export class Meeting {
+    _id?: number | string;
+    name?: string;
+    startTime?: Date;
+    endTime?: Date;
+    room?: string;
+    owner?: User;
+}
+
+export const meetingModel = model("Meeting", new Schema({
     name: { 
         type: String, 
         required: true, 
@@ -19,6 +29,4 @@ const schema = new Schema({
         required: true
     },
     owner: { type: Schema.Types.ObjectId, ref: "User", required: true },
-});
-
-module.exports = model("Meeting", schema);
+}));

@@ -1,12 +1,13 @@
-const { Meeting, User } = require('../models');
+import {Request, Response} from "express";
+import {Meeting} from "../models/Meeting";
 
 // const ERROR_MESSAGE = 'NO MEETING FOUND!'
-
 /*
 Helper function to check if there are conflicting meetings! 
 */
-function hasConflictingMeetings(req, meeting, edit) {
-    let existingMeetings = req.user.meetings;
+
+export const  hasConflictingMeetings = (req: Request, meeting: Meeting, edit: boolean) => {
+    let existingMeetings = req.body.user.meetings as Meeting[];
     if (edit) {
         existingMeetings = existingMeetings.filter(mtng => mtng.name !== meeting.name);
     }
@@ -18,22 +19,22 @@ function hasConflictingMeetings(req, meeting, edit) {
         return false;
     }
     const conflictingMeetings = sameRoomMeetings.filter((mtng) => {
-        const currentStartTime = new Date(mtng.startTime);
-        const currentEndTime = new Date(mtng.endTime);
-        const newStartTime = new Date(meeting.startTime);
-        const newEndTime = new Date(meeting.endTime);
+        const currentStartTime = new Date(mtng.startTime!);
+        const currentEndTime = new Date(mtng.endTime!);
+        const newStartTime = new Date(meeting.startTime!);
+        const newEndTime = new Date(meeting.endTime!);
         return (newStartTime >= currentStartTime && newStartTime <= currentEndTime)
             || (newEndTime >= currentStartTime && newEndTime <= currentEndTime);
     });
-    return conflictingMeetings.length < 1 ? false : true;
+    return conflictingMeetings.length >= 1;
 }
 
-function hasCorrectTime(meeting) {
-    return new Date(meeting.startTime) < new Date(meeting.endTime);
+export const hasCorrectTime = (meeting: Meeting) => {
+    return new Date(meeting.startTime!) < new Date(meeting.endTime!);
 }
 
-async function createMeeting(req, res) {
-    const meeting = new Meeting(req.body);
+async function createMeeting(req: Request, res: Response) {
+    const meeting = req.body as Meeting;
     meeting.owner = req.user._id;
     const owner = await User.findById(meeting.owner);
     /*
@@ -207,13 +208,4 @@ async function removeMeeting(req, res) {
     const meeting = await Meeting.findById({ _id: meetingId });
     await meeting.deleteOne();
     res.status(200).json(meeting);
-}
-
-module.exports = {
-    createMeeting,
-    getMeeting,
-    editMeeting,
-    removeMeeting,
-    getAllMeetings,
-    getFilteredMeetings
 }

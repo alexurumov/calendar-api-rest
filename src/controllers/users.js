@@ -1,9 +1,9 @@
-const { User } = require('../models');
+const { User } = require('../src/models');
 const jwt = require("jsonwebtoken");
 require('dotenv').config();
-const TOKEN_SECRET = process.env.TOKEN_SECRET || 'Some default secret!';
-const COOKIE_NAME = process.env.COOKIE_NAME || 'AUTH_COOKIE';
-const { filterObject, bsonConvertObject } = require('../utils');
+const TOKEN_SECRET = process.env.TOKEN_SECRET ;
+const COOKIE_NAME = process.env.COOKIE_NAME ;
+const { filterObject, bsonConvertObject } = require('../src/utils');
 
 async function register(req, res) {
     const user = new User(req.body);

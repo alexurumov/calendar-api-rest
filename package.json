@@ -2,7 +2,7 @@
   "name": "calendar-api",
   "version": "1.0.0",
   "description": "REST API to serve/edit calendar events The purpose of this component is to enable web based clients to manage calendar events (aka meetings).",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon"
@@ -28,6 +28,11 @@
     "mongoose": "^6.7.2"
   },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.0",
+    "@types/cookie-parser": "^1.4.3",
+    "@types/cors": "^2.8.13",
+    "@types/express": "^4.17.15",
+    "@types/jsonwebtoken": "^9.0.0",
     "nodemon": "^2.0.20"
   }
 }
