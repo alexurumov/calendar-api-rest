@@ -1,4 +1,5 @@
 import {model, Schema, Types} from "mongoose";
+
 export interface IMeeting {
     _id?: Types.ObjectId;
     name: string;
@@ -27,7 +28,7 @@ const meetingSchema = new Schema<IMeeting>({
         type: String,
         required: true
     },
-    owner: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    owner: {type: Schema.Types.ObjectId, ref: "User", required: true},
 })
 
-export const MeetingModel = model('Meeting', meetingSchema);
+export const MeetingModel = model<IMeeting>('Meeting', meetingSchema);
