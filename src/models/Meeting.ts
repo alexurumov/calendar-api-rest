@@ -1,32 +1,33 @@
-import {model, Schema} from "mongoose";
-import {User} from "./User";
-
-export interface Meeting {
+import {model, Schema, Types} from "mongoose";
+export interface IMeeting {
     _id?: number | string;
-    name?: string;
-    startTime?: Date;
-    endTime?: Date;
-    room?: string;
-    owner?: User;
+    name: string;
+    startTime: Date;
+    endTime: Date;
+    room: string;
+    owner: Types.ObjectId;
+
 }
 
-export const meetingModel = model("Meeting", new Schema<Meeting>({
-    name: { 
-        type: String, 
-        required: true, 
+const meetingSchema = new Schema<IMeeting>({
+    name: {
+        type: String,
+        required: true,
         unique: true
     },
-    startTime: { 
-        type: Date, 
-        required: true 
+    startTime: {
+        type: Date,
+        required: true
     },
-    endTime: { 
-        type: Date, 
-        required: true 
+    endTime: {
+        type: Date,
+        required: true
     },
-    room: { 
-        type: String, 
+    room: {
+        type: String,
         required: true
     },
     owner: { type: Schema.Types.ObjectId, ref: "User", required: true },
-}));
+})
+
+export const Meeting = model('Meeting', meetingSchema);
