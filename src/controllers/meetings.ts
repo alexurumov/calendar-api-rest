@@ -1,7 +1,7 @@
 import {Request, Response} from "express";
-import {meetingModel, Meeting} from "../models/Meeting";
+import {meetingModel, Meeting, MeetingModel} from "../models/Meeting";
 
-export const hasConflictingMeetings  = (req: Request, meeting: Meeting, edit: boolean) => {
+const hasConflictingMeetings  = (req: Request, meeting: Meeting, edit: boolean) => {
     let existingMeetings = req.body.user.meetings as Meeting[];
     if (edit) {
         existingMeetings = existingMeetings.filter(mtng => mtng.name !== meeting.name);
@@ -24,13 +24,13 @@ export const hasConflictingMeetings  = (req: Request, meeting: Meeting, edit: bo
     return conflictingMeetings.length >= 1;
 }
 
-export const hasCorrectTime = (meeting: Meeting) => {
+const hasCorrectTime = (meeting: Meeting) => {
     return new Date(meeting.startTime!) < new Date(meeting.endTime!);
 }
 
 export async function createMeeting(req: Request, res: Response) {
-    const meeting = req.body as Meeting;
-    meeting.owner = req.user._id;
+    const meeting = req.body;
+    meeting.owner = req.user?._id;
     const owner = await User.findById(meeting.owner);
     /*
      Check for conflict with existing meetings! 
@@ -98,8 +98,10 @@ async function getMeeting(req, res) {
     }
 }
 
-function getAllMeetings(req, res) {
-    res.status(200).json(req.user.meetings);
+export function getAllMeetings(req: Request, res: Response) {
+    const userId = req.user?.userId;
+    const meetings = MeetingModel.
+    res.status(200).json();
 }
 
 async function getFilteredMeetings(req, res) {

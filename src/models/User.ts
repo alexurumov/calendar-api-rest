@@ -1,6 +1,6 @@
-import {model, Schema, Types} from "mongoose";
+import {Model, model, Schema, Types} from "mongoose";
 import bcrypt from "bcrypt";
-import {IMeeting, Meeting} from "./Meeting";
+import {IMeeting, MeetingModel} from "./Meeting";
 
 export interface IUser {
     _id?: Types.ObjectId;
@@ -9,7 +9,13 @@ export interface IUser {
     meetings: Types.Array<IMeeting>
 }
 
-export const userSchema = new Schema<IUser>({
+interface IUserMethods {
+    matchPassword(password: string): boolean;
+}
+
+type UserModel = Model<IUser, {}, IUserMethods>
+
+const userSchema = new Schema<IUser, UserModel, IUserMethods>({
     username: {
         type: String,
         required: true,
@@ -40,10 +46,8 @@ userSchema.pre('save', async function (next) {
     }
 })
 
-userSchema.methods = {
-    matchPassword: function (password: string) {
-        return bcrypt.compare(password, this.password);
-    }
-}
+userSchema.method('matchPassword', function (password: string) {
+    return bcrypt.compare(password, this.password);
+})
 
-export const UserModel = model('User', userSchema);
+export const UserModel = model<IUser, UserModel>('User', userSchema);

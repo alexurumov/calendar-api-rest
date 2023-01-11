@@ -30,4 +30,4 @@ const meetingSchema = new Schema<IMeeting>({
     owner: { type: Schema.Types.ObjectId, ref: "User", required: true },
 })
 
-export const Meeting = model('Meeting', meetingSchema);
+export const MeetingModel = model('Meeting', meetingSchema);

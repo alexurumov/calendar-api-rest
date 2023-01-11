@@ -1,7 +1,7 @@
 import {filterObject} from "../utils/filterObject";
 import {bsonConvertObject} from "../utils/bsonConvertObject";
 
-import {userModel as User} from "../models/User";
+import {IUser, UserModel} from "../models/User";
 
 import jwt from "jsonwebtoken";
 import {NextFunction, Request, Response} from "express";
@@ -20,6 +20,7 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
             return;
         }
         const jwtPayload = jwt.verify(token, TOKEN_SECRET);
+
         let _id = '';
         if (typeof jwtPayload === 'string') {
             console.log(`string ${jwtPayload}`);
@@ -28,15 +29,17 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
             console.log(`jwtPayload ${jwtPayload}`);
             _id = jwtPayload._id;
         }
-        const user = await User.findById({ _id }).populate('meetings');
+        // const user = await UserModel.findById({ _id }).populate('meetings');
         /*
         Simplifying the object. 
         */
-        const convertedUser = bsonConvertObject(user);
+        // const convertedUser = bsonConvertObject(user);
         /*
         Removing the sensitive and non-related props from the User object, so we can return safely to the client! 
         */
-        req.body.user = filterObject(convertedUser);
+
+        //TODO: add user to request
+
         next();
     } catch (err) {
         res.status(401).send({ message: "Invalid token!" });
