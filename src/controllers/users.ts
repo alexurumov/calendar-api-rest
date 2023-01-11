@@ -1,11 +1,13 @@
-const { User } = require('../src/models');
+import {Request, Response} from "express";
+
+import { User } from '../../src/models/User';
 const jwt = require("jsonwebtoken");
 require('dotenv').config();
 const TOKEN_SECRET = process.env.TOKEN_SECRET ;
 const COOKIE_NAME = process.env.COOKIE_NAME ;
 const { filterObject, bsonConvertObject } = require('../src/utils');
 
-async function register(req, res) {
+async function register(req: Request, res: Response) {
     const user = new User(req.body);
 
     try {

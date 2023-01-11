@@ -11,8 +11,8 @@ router.get('/:filter',auth, meetingsController.getFilteredMeetings);
 
 router.post('/',auth, meetingsController.createMeeting);
 
-router.get('/:id', auth,isOwner, meetingsController.getMeeting);
+router.get('/:id', auth, isOwner, meetingsController.getMeeting);
 
-router.put('/:id',auth,isOwner, meetingsController.editMeeting);
+router.put('/:id',auth, isOwner, meetingsController.editMeeting);
 
 router.delete('/:id', auth, isOwner, meetingsController.removeMeeting);

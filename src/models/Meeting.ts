@@ -1,7 +1,7 @@
 import {model, Schema} from "mongoose";
 import {User} from "./User";
 
-export class Meeting {
+export interface Meeting {
     _id?: number | string;
     name?: string;
     startTime?: Date;
@@ -10,7 +10,7 @@ export class Meeting {
     owner?: User;
 }
 
-export const meetingModel = model("Meeting", new Schema({
+export const meetingModel = model("Meeting", new Schema<Meeting>({
     name: { 
         type: String, 
         required: true, 

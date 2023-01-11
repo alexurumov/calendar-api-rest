@@ -1,12 +1,7 @@
 import {Request, Response} from "express";
-import {Meeting} from "../models/Meeting";
+import {meetingModel, Meeting} from "../models/Meeting";
 
-// const ERROR_MESSAGE = 'NO MEETING FOUND!'
-/*
-Helper function to check if there are conflicting meetings! 
-*/
-
-export const  hasConflictingMeetings = (req: Request, meeting: Meeting, edit: boolean) => {
+export const hasConflictingMeetings  = (req: Request, meeting: Meeting, edit: boolean) => {
     let existingMeetings = req.body.user.meetings as Meeting[];
     if (edit) {
         existingMeetings = existingMeetings.filter(mtng => mtng.name !== meeting.name);
@@ -33,7 +28,7 @@ export const hasCorrectTime = (meeting: Meeting) => {
     return new Date(meeting.startTime!) < new Date(meeting.endTime!);
 }
 
-async function createMeeting(req: Request, res: Response) {
+export async function createMeeting(req: Request, res: Response) {
     const meeting = req.body as Meeting;
     meeting.owner = req.user._id;
     const owner = await User.findById(meeting.owner);
