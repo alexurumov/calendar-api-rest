@@ -1,15 +1,15 @@
-import {model, Schema} from "mongoose";
+import {model, Schema, Types} from "mongoose";
 import bcrypt from "bcrypt";
-import {Meeting} from "./Meeting";
+import {IMeeting, Meeting} from "./Meeting";
 
-export class User {
-    _id?: string | number;
-    username?: string;
-    password?: string;
-    meetings?: Meeting[];
+export interface IUser {
+    _id?: Types.ObjectId;
+    username: string;
+    password: string;
+    meetings: Types.Array<IMeeting>
 }
 
-const schema = new Schema({
+export const userSchema = new Schema<IUser>({
     username: {
         type: String,
         required: true,
@@ -26,13 +26,12 @@ const schema = new Schema({
         }
     ],
 });
+
 /*
 Hashing password before storing object in DB!
  */
-schema.pre('save', async function (next) {
+userSchema.pre('save', async function (next) {
     try {
-        console.log('only for testing pass:')
-        console.log(this.password)
         this.password = await bcrypt.hash(this.password, 10);
         next();
     }
@@ -41,10 +40,10 @@ schema.pre('save', async function (next) {
     }
 })
 
-schema.methods = {
+userSchema.methods = {
     matchPassword: function (password: string) {
         return bcrypt.compare(password, this.password);
     }
 }
 
-export const userModel = model("User", schema);
+export const UserModel = model('User', userSchema);

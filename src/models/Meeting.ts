@@ -1,6 +1,6 @@
 import {model, Schema, Types} from "mongoose";
 export interface IMeeting {
-    _id?: number | string;
+    _id?: Types.ObjectId;
     name: string;
     startTime: Date;
     endTime: Date;
