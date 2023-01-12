@@ -1,19 +1,13 @@
 import mongoose, {ConnectOptions} from 'mongoose';
 
-const DB_CONNECTION_STRING: string = process.env.DB_CONNECTION_STRING as string;
+const DB_CONNECTION_STRING: string = process.env.DB_CONNECTION_STRING as string || 'mongodb://localhost:27017/calendar-api';
 
-export const database = async () => {
-    let options: ConnectOptions = {
-        dbName: 'calendar-api',
-        user: 'root',
-        pass: 'passroot'
-    };
-    const connection = await mongoose.createConnection(DB_CONNECTION_STRING, options);
-
-    connection.on('error', err => {
-        console.error('Database error: ', err.message);
-    });
-    connection.on('open', () => {
-        console.log('>>> Database connected!');
+export const databaseConfig = async () => {
+    mongoose.connect('mongodb://127.0.0.1:27017/', {}, (err) => {
+        if (err) {
+            console.log('DB Error' + err)
+        } else {
+            console.log('DB Connected! ')
+        }
     });
 };

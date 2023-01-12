@@ -13,7 +13,7 @@ router.get('/', getAllMeetings);
 
 router.post('/', createMeeting);
 
-router.get('/:id', getMeeting);
+// router.get('/:id', getMeeting);
 
 // router.put('/:id', meetingsController.editMeeting);
 

@@ -1,14 +1,11 @@
 import express, {Request, Response} from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-
-import {customExpress as expressConfig} from "./src/config/express";
-import {database as databaseConfig} from "./src/config/database";
-
-const apiRouter = require('./src/router');
+import {expressConfig, databaseConfig} from "./src/config/";
+import {routes} from "./src/router";
 
 dotenv.config();
-const PORT: string = process.env.PORT as string;
+const PORT: string = process.env.PORT as string || '5555';
 
 (async function start() {
     const app = express();
@@ -23,10 +20,11 @@ const PORT: string = process.env.PORT as string;
 
     app.get('/', (req: Request, res: Response) => {
         res.json({message: 'It works!'})
+        console.log(`Reached '/'!`);
     })
 
     // Configure Router
-    app.use('/api/', apiRouter);
+    app.use('/api/', routes);
 
     app.listen(PORT, () => console.log(`>>> Application started at http://localhost:${PORT}`));
 })();

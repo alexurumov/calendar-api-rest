@@ -1,6 +1,6 @@
 import {Model, model, Schema, Types} from "mongoose";
-import bcrypt from "bcrypt";
 import {IMeeting, MeetingModel} from "./Meeting";
+import CryptoJS from "crypto-js/core";
 
 export interface IUser {
     _id?: Types.ObjectId;
@@ -38,7 +38,8 @@ Hashing password before storing object in DB!
  */
 userSchema.pre('save', async function (next) {
     try {
-        this.password = await bcrypt.hash(this.password, 10);
+        // this.password = await bcrypt.hash(this.password, 10);
+        this.password = CryptoJS.HmacSHA256(this.password, 'calendar-api-secret-key').toString();
         next();
     }
     catch (err) {
@@ -46,8 +47,8 @@ userSchema.pre('save', async function (next) {
     }
 })
 
-userSchema.method('matchPassword', function (password: string) {
-    return bcrypt.compare(password, this.password);
+userSchema.method('matchPassword', function (password: string): boolean {
+    return CryptoJS.HmacSHA256(password, 'calendar-api-secret-key').toString() === this.password;
 })
 
 export const UserModel = model<IUser, UserModel>('User', userSchema);

@@ -104,9 +104,10 @@ export async function getMeeting(req: Request, res: Response) {
 
 export function getAllMeetings(req: Request, res: Response) {
     // const userId = req.user!._id;
+    console.log(`Reached /api/meetings !`);
 
-    const meetings = MeetingModel.find({});
-    res.status(200).json(meetings);
+    // const meetings = MeetingModel.find({});
+    res.status(200).json('Meetings reached!');
 }
 
 // TODO: implement later!

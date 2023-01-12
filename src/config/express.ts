@@ -3,7 +3,7 @@ import cookieParser from 'cookie-parser';
 
 const COOKIE_NAME = process.env.COOKIE_NAME;
 
-export const customExpress = (app: Express) => {
+export const expressConfig = (app: Express) => {
     app.use(json());
     app.use(cookieParser(COOKIE_NAME));    
 }

@@ -3,10 +3,12 @@ import { UserModel } from '../models/User';
 import * as dotenv from 'dotenv';
 import jwt from "jsonwebtoken";
 
+import {bsonConvertObject, filterObject} from "../utils";
+
 dotenv.config();
 const TOKEN_SECRET = process.env.TOKEN_SECRET as string;
 const COOKIE_NAME = process.env.COOKIE_NAME as string;
-const { filterObject, bsonConvertObject } = require('../src/utils');
+
 
 export async function register(req: Request, res: Response) {
     const user = new UserModel(req.body);
