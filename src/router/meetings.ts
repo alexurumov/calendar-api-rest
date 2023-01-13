@@ -1,7 +1,7 @@
 import {Router} from "express";
 // import {isOwner} from "../middlewares/guards";
-import {getAllMeetings, createMeeting, getMeeting} from "../controllers/meetings";
-import {auth} from "../middlewares/auth";
+import {getAllMeetings, createMeeting, getMeeting} from "../controllers/meetings.controller";
+import {auth} from "../middlewares/auth.middleware";
 
 export const router = Router();
 

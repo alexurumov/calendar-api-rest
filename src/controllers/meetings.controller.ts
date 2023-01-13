@@ -29,7 +29,7 @@ const hasCorrectTime = (meeting: IMeeting) => {
     return new Date(meeting.startTime!) < new Date(meeting.endTime!);
 }
 
-export async function createMeeting(req: Request, res: Response) {
+async function createMeeting(req: Request, res: Response) {
     const meeting = req.body;
     meeting.owner = req.user!._id;
 
@@ -91,7 +91,7 @@ export async function createMeeting(req: Request, res: Response) {
     }
 }
 
-export async function getMeeting(req: Request, res: Response) {
+async function getMeeting(req: Request, res: Response) {
     const meetingId = req.params.id;
     try {
         const meeting = await MeetingModel.findById({_id: meetingId});
@@ -102,7 +102,7 @@ export async function getMeeting(req: Request, res: Response) {
     }
 }
 
-export function getAllMeetings(req: Request, res: Response) {
+function getAllMeetings(req: Request, res: Response) {
     // const userId = req.user!._id;
     console.log(`Reached /api/meetings !`);
 
@@ -214,3 +214,9 @@ export function getAllMeetings(req: Request, res: Response) {
 //     await meeting.deleteOne();
 //     res.status(200).json(meeting);
 // }
+
+export {
+    createMeeting,
+    getMeeting,
+    getAllMeetings
+}

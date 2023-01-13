@@ -1,6 +1,3 @@
-import {filterObject} from "../utils/filterObject";
-import {bsonConvertObject} from "../utils/bsonConvertObject";
-import {IUser, UserModel} from "../models/User";
 import jwt from "jsonwebtoken";
 import {NextFunction, Request, Response} from "express";
 import * as dotenv from "dotenv";
