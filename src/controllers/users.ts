@@ -1,14 +1,12 @@
 import {Request, Response} from "express";
 import { UserModel } from '../models/User';
-import * as dotenv from 'dotenv';
 import jwt from "jsonwebtoken";
-
 import {bsonConvertObject, filterObject} from "../utils";
-
+import * as dotenv from 'dotenv';
 dotenv.config();
-const TOKEN_SECRET = process.env.TOKEN_SECRET as string;
-const COOKIE_NAME = process.env.COOKIE_NAME as string;
 
+const TOKEN_SECRET: string = process.env.TOKEN_SECRET || 'Calendar Api Secret!';
+const COOKIE_NAME: string = process.env.COOKIE_NAME || 'calendar-api-cookie-name';
 
 export async function register(req: Request, res: Response) {
     const user = new UserModel(req.body);

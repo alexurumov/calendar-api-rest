@@ -1,13 +1,14 @@
 import {filterObject} from "../utils/filterObject";
 import {bsonConvertObject} from "../utils/bsonConvertObject";
-
 import {IUser, UserModel} from "../models/User";
-
 import jwt from "jsonwebtoken";
 import {NextFunction, Request, Response} from "express";
+import * as dotenv from "dotenv";
+dotenv.config();
 
-const TOKEN_SECRET = process.env.TOKEN_SECRET as string;
-const COOKIE_NAME = process.env.COOKIE_NAME as string;
+
+const TOKEN_SECRET: string = process.env.TOKEN_SECRET || 'Calendar Api Secret!';
+const COOKIE_NAME: string = process.env.COOKIE_NAME || 'calendar-api-cookie-name';
 
 /*
 Middleware that checks if there is a logged in user and if it's JWT token is valid
