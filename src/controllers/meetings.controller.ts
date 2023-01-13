@@ -1,6 +1,7 @@
 import {Request, Response} from "express";
 import {MeetingModel, UserModel} from "../models";
 import {IMeeting} from "../interfaces";
+import {HydratedDocument} from "mongoose";
 
 const hasConflictingMeetings = (req: Request, meeting: IMeeting, edit: boolean) => {
     let existingMeetings = req.body.user.meetings as IMeeting[];
@@ -29,28 +30,30 @@ const hasCorrectTime = (meeting: IMeeting) => {
     return new Date(meeting.startTime!) < new Date(meeting.endTime!);
 }
 
-async function createMeeting(req: Request, res: Response) {
-    const meeting = req.body;
-    meeting.owner = req.user!._id;
+async function createMeeting(req: Request<{}, {}, IMeeting>, res: Response) {
+    const meetingData: IMeeting = req.body as IMeeting;
+    const newMeeting: HydratedDocument<IMeeting> = new MeetingModel(meetingData);
 
-    const owner = await UserModel.findById(meeting.owner);
+    // Implement use login first!
+    // const owner = await UserModel.findById(meeting.owner);
+
     /*
      Check for conflict with existing meetings! 
      */
-
-    if (hasConflictingMeetings(req, meeting, false)) {
-        res.status(409).send({message: 'Another meeting in the same room has already been scheduled in this time frame!'});
-        return;
-    }
-    if (!hasCorrectTime(meeting)) {
-        res.status(400).send({message: 'Start time cannot be later than End time!'});
-        return;
-    }
+    //TODO: Refactor and then use!
+    // if (hasConflictingMeetings(req, meeting, false)) {
+    //     res.status(409).send({message: 'Another meeting in the same room has already been scheduled in this time frame!'});
+    //     return;
+    // }
+    // if (!hasCorrectTime(meeting)) {
+    //     res.status(400).send({message: 'Start time cannot be later than End time!'});
+    //     return;
+    // }
     try {
         /*
         Trying to save the meeting in the DB, so DB validation rules can be applied! 
         */
-        const savedMeeting = await meeting.save();
+        const savedMeeting = await newMeeting.save();
 
         /*
         Adding the meeting to the owner's collection also!
@@ -102,12 +105,11 @@ async function getMeeting(req: Request, res: Response) {
     }
 }
 
-function getAllMeetings(req: Request, res: Response) {
-    // const userId = req.user!._id;
-    console.log(`Reached /api/meetings !`);
+async function getAllMeetings(req: Request, res: Response) {
+    // TODO: Filter meetings by ID
+    const meetings: IMeeting[] = await MeetingModel.find({}).lean();
 
-    // const meetings = MeetingModel.find({});
-    res.status(200).json('Meetings reached!');
+    res.status(200).json(meetings);
 }
 
 // TODO: implement later!

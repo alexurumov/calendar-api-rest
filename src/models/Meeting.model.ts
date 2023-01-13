@@ -1,7 +1,7 @@
 import {model, Schema} from "mongoose";
 import {IMeeting} from "../interfaces";
 
-const meetingSchema = new Schema<IMeeting>({
+const MeetingSchema = new Schema<IMeeting>({
     name: {
         type: String,
         required: true,
@@ -19,7 +19,10 @@ const meetingSchema = new Schema<IMeeting>({
         type: String,
         required: true
     },
-    // owner: {type: Schema.Types.ObjectId, ref: "User", required: true},
+    owner: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+    },
 })
-
-export const MeetingModel = model<IMeeting>('Meeting', meetingSchema);
+export const MeetingModel = model<IMeeting>('Meeting', MeetingSchema);

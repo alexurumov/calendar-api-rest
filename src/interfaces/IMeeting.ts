@@ -1,7 +1,9 @@
+import {Types} from "mongoose";
+
 export interface IMeeting {
     name: string;
     startTime: Date;
     endTime: Date;
     room: string;
-    // owner: Types.ObjectId;
+    owner: Types.ObjectId;
 }
