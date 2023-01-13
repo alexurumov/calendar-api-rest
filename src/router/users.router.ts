@@ -1,11 +1,5 @@
 import {Router} from "express";
-
-import express from "express";
-
-import * as usersController  from "../controllers/users.controller";
-
-import {isGuest, isLogged} from "../middlewares/guards.middleware";
-
+import {usersController} from "../controllers";
 
 // TODO: put back guards when fixed!
 export const router = Router();

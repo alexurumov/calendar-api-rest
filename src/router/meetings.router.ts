@@ -1,17 +1,14 @@
 import {Router} from "express";
-// import {isOwner} from "../middlewares/guards";
-import {getAllMeetings, createMeeting, getMeeting} from "../controllers/meetings.controller";
-import {auth} from "../middlewares/auth.middleware";
+import {meetingsController} from "../controllers";
 
 export const router = Router();
 
 // TODO: put back guards when fixed!
-
-router.get('/', getAllMeetings);
+router.get('/', meetingsController.getAllMeetings);
 
 // router.get('/:filter',getFilteredMeetings);
 
-router.post('/', createMeeting);
+router.post('/', meetingsController.createMeeting);
 
 // router.get('/:id', getMeeting);
 

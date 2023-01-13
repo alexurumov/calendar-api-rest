@@ -1,5 +1,5 @@
 import {Types} from "mongoose";
-import {IMeeting} from "../Meeting";
+import {IMeeting} from "./IMeeting";
 
 export interface IUser {
     _id?: Types.ObjectId;

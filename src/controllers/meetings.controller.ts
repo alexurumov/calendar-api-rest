@@ -1,6 +1,6 @@
 import {Request, Response} from "express";
-import {IMeeting, MeetingModel} from "../models/Meeting";
-import {UserModel} from "../models/User";
+import {MeetingModel, UserModel} from "../models";
+import {IMeeting} from "../interfaces";
 
 const hasConflictingMeetings = (req: Request, meeting: IMeeting, edit: boolean) => {
     let existingMeetings = req.body.user.meetings as IMeeting[];

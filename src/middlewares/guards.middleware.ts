@@ -1,20 +1,19 @@
-import { Request, Response, NextFunction } from "express";
-import { UserModel } from "../models/User";
+import {Request, Response, NextFunction} from "express";
 
-export const isLogged = (req: Request, res: Response, next: NextFunction) => {
-  if (req.body.user) {
-    next();
-  } else {
-    res.status(401).send({ message: "Please, log in!" });
-  }
+const isLogged = (req: Request, res: Response, next: NextFunction) => {
+    if (req.body.user) {
+        next();
+    } else {
+        res.status(401).send({message: "Please, log in!"});
+    }
 };
 
-export const isGuest = (req: Request, res: Response, next: NextFunction) => {
-  if (!req.body.user) {
-    next();
-  } else {
-    res.status(401).send({ message: "You are already logged in!" });
-  }
+const isGuest = (req: Request, res: Response, next: NextFunction) => {
+    if (!req.body.user) {
+        next();
+    } else {
+        res.status(401).send({message: "You are already logged in!"});
+    }
 };
 
 // TODO: Fix
@@ -30,3 +29,8 @@ export const isGuest = (req: Request, res: Response, next: NextFunction) => {
 //     res.status(401).send({ message: "You are not authorised!" });
 //   }
 // };
+
+export {
+  isLogged,
+  isGuest
+}

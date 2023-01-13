@@ -3,7 +3,6 @@ import {NextFunction, Request, Response} from "express";
 import * as dotenv from "dotenv";
 dotenv.config();
 
-
 const TOKEN_SECRET: string = process.env.TOKEN_SECRET || 'Calendar Api Secret!';
 const COOKIE_NAME: string = process.env.COOKIE_NAME || 'calendar-api-cookie-name';
 
@@ -19,7 +18,7 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
         }
         const jwtPayload = jwt.verify(token, TOKEN_SECRET);
 
-        let _id = '';
+        let _id: string;
         if (typeof jwtPayload === 'string') {
             console.log(`string ${jwtPayload}`);
             _id = jwtPayload;

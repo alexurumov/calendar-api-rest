@@ -1,6 +1,6 @@
 import {Request, Response} from "express";
-import {TestModel} from "../models/TestDb";
-import {ITest} from "../models/interfaces/ITest";
+import {TestModel} from "../models";
+import {ITest} from "../interfaces";
 import {HydratedDocument} from "mongoose";
 export async function testDB(req: Request, res: Response) {
     const newTest: HydratedDocument<ITest> = new TestModel({

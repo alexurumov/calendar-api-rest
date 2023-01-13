@@ -1,12 +1,11 @@
 import {Request, Response} from "express";
-import { UserModel } from '../models/User';
+import { UserModel } from '../models';
 import jwt from "jsonwebtoken";
-import {bsonConvertObject, filterObject} from "../utils";
+import {simplifyObject, filterObject} from "../utils";
 import * as dotenv from 'dotenv';
 dotenv.config();
 
 const TOKEN_SECRET: string = process.env.TOKEN_SECRET || 'Calendar Api Secret!';
-const COOKIE_NAME: string = process.env.COOKIE_NAME || 'calendar-api-cookie-name';
 
 export async function register(req: Request, res: Response) {
     const user = new UserModel(req.body);
@@ -19,7 +18,7 @@ export async function register(req: Request, res: Response) {
         /*
         Simplifying the object. 
         */
-        const convertedUser = bsonConvertObject(savedUser);
+        const convertedUser = simplifyObject(savedUser);
         /*
         Removing the sensitive and non-related props from the User object, so we can return safely to the client! 
         */
@@ -36,7 +35,6 @@ export async function register(req: Request, res: Response) {
                 _id: user._id.toString()
             }
         }
-        //
         return res.status(200).json(filteredUser);
     }
     catch (err: any) {
@@ -85,7 +83,7 @@ export async function login(req: Request, res: Response) {
     /*
     Simplifying the object. 
     */
-    const convertedUser = bsonConvertObject(existing);
+    const convertedUser = simplifyObject(existing);
     /*
     Removing the sensitive and non-related props from the User object, so we can return safely to the client! 
     */

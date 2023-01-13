@@ -1,3 +1,3 @@
-export const bsonConvertObject = (data: unknown) => {
+export const simplifyObject = (data: unknown) => {
     return JSON.parse(JSON.stringify(data)); 
 } // todo: fix

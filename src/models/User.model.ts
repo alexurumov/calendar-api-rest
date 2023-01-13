@@ -1,14 +1,12 @@
 import {model, Schema} from "mongoose";
-import {IMeeting, MeetingModel} from "./Meeting";
 import * as dotenv from 'dotenv';
-import {IUser} from "./interfaces/IUser";
-import {hashPass} from "../utils/crypto.util";
+import {hashPass} from "../utils";
+import {IUser} from "../interfaces";
 dotenv.config();
 
 interface IUserMethods {
     matchPassword(password: string): boolean;
 }
-
 
 const userSchema = new Schema<IUser, IUserMethods>({
     username: {

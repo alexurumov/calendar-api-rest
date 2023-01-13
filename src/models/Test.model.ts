@@ -1,5 +1,5 @@
-import mongoose, {model, Schema, Types} from "mongoose";
-import {ITest} from "./interfaces/ITest";
+import {model, Schema} from "mongoose";
+import {ITest} from "../interfaces";
 
 const testSchema = new Schema<ITest>({
     name: {

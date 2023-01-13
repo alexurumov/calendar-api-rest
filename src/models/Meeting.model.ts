@@ -1,13 +1,5 @@
-import {model, Schema, Types} from "mongoose";
-
-export interface IMeeting {
-    name: string;
-    startTime: Date;
-    endTime: Date;
-    room: string;
-    // owner: Types.ObjectId;
-
-}
+import {model, Schema} from "mongoose";
+import {IMeeting} from "../interfaces";
 
 const meetingSchema = new Schema<IMeeting>({
     name: {
