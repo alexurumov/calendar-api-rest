@@ -8,7 +8,7 @@
     "prebuild": "rm -rf build",
     "build": "npx tsc",
     "prestart": "npm run build",
-    "start": "nodemon build/index.js"
+    "start": "node build/index.js"
   },
   "repository": {
     "type": "git",
