@@ -1,4 +1,4 @@
-export interface ITest {
+export interface TestEntity {
     name: string;
     message?: string;
 }

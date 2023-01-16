@@ -1,7 +1,6 @@
 import {Request, Response} from "express";
-import {TestRepository} from "../data/repos/impl/Test.repository";
-import {ITest} from "../interfaces";
-import {TestDtoModel} from "../data/models/TestDto.model";
+import {TestRepository} from "../repositories/test.repository";
+import {TestDto} from "../dtos/test.dto";
 
 export default class TestController {
     constructor(private testRepo: TestRepository) {}
@@ -11,7 +10,7 @@ export default class TestController {
     }
 
     async create(req: Request, res: Response) {
-        const newTestData = Object.assign(req.body, new TestDtoModel());
+        const newTestData = Object.assign(req.body, new TestDto());
         const created = await this.testRepo.create(newTestData);
         res.status(201).json(created);
     }
