@@ -19,8 +19,7 @@ const PORT: string = process.env.PORT as string || '5555';
     app.use(cors());
 
     app.get('/', (req: Request, res: Response) => {
-        res.json({message: 'It works!'})
-        console.log(`Reached '/'!`);
+        res.json({message: 'It works! Please, use /api suffix to access data further!'})
     })
 
     // Configure Router
