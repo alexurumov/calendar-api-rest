@@ -39,7 +39,7 @@ export class TestRepository implements BaseRepository<TestEntity, TestDto> {
     }
 
     findAllByName<ParamDto extends Pick<TestDto, 'name'>>(params: Required<ParamDto>): Promise<TestEntity[]> {
-        return testModel.find({message: params.name}).exec();
+        return testModel.find({name: params.name}).exec();
     }
 
     async updateById(id: string, dto: TestDto): Promise<TestEntity> {

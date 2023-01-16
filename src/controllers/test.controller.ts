@@ -1,13 +1,24 @@
 import {Request, Response} from "express";
 import {TestRepository} from "../repositories/test.repository";
 import {TestDto} from "../dtos/test.dto";
+import {TestEntity} from "../entities/test.entity";
 
 export default class TestController {
-    constructor(private testRepo: TestRepository) {}
+    constructor(private testRepo: TestRepository) {
+    }
 
     async getAll(req: Request, res: Response) {
-        const records = await this.testRepo.findAll();
-        res.status(200).json(records);
+        let tests: TestEntity[];
+        if (req.query.name) {
+            tests = await this.testRepo.findAllByName({name: req.query.name as string});
+            console.log(req.query.name);
+        } else if (req.query.message) {
+            tests = await this.testRepo.findAllByMessage({message: req.query.message as string});
+            console.log(req.query.message)
+        } else {
+            tests = await this.testRepo.findAll();
+        }
+        res.status(200).json(tests);
     }
 
     async create(req: Request, res: Response) {
