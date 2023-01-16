@@ -4,4 +4,4 @@ import {testController} from "../controllers";
 export const router = Router();
 
 router.get('/', (req, res) => testController.getAll(req, res));
-// router.post('/', testController.createTest);
+router.post('/', (req, res) => testController.create(req, res));
