@@ -1,4 +1,4 @@
-import {FilterQuery, model, Schema} from "mongoose";
+import {model, Schema} from "mongoose";
 import {TestEntity} from "../entities/test.entity";
 import {BaseRepository} from "./base.repository";
 import {TestDto} from "../dtos/test.dto";
@@ -22,7 +22,6 @@ export class TestRepository implements BaseRepository<TestEntity, TestDto> {
         const entity: TestEntity = Object.assign({}, testData);
         return testModel.create(entity);
     }
-
     async findAll(): Promise<TestEntity[]> {
         return testModel.find();
     }
@@ -43,8 +42,16 @@ export class TestRepository implements BaseRepository<TestEntity, TestDto> {
         return testModel.find({message: params.name}).exec();
     }
 
-    async delete(id: string): Promise<void> {
-        await testModel.findByIdAndDelete(id).exec();
+    async updateById(id: string, dto: TestDto): Promise<TestEntity> {
+        const entity = await testModel.findById(id);
+        if (!entity) {
+            throw new Error('Not found');
+        }
+        Object.assign(entity, dto);
+        return await entity.save();
     }
 
+    async delete(id: string): Promise<TestEntity | null> {
+        return await testModel.findByIdAndDelete(id).exec();
+    }
 }

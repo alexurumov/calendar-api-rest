@@ -3,5 +3,6 @@ export interface BaseRepository<E, D> {
     findAll(): Promise<E[]>;
     findById(id: string): Promise<E>;
     // findAllBy<ParamDto extends Pick<D, keyof D>>(params: Required<ParamDto>): Promise<E[]>;
-    delete(id: string): Promise<void>;
+    delete(id: string): Promise<E | null>;
+    updateById(id: string, dto: D): Promise<E>;
 }
