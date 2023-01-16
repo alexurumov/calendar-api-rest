@@ -1,19 +1,15 @@
 import {Request, Response} from "express";
-import {TestModel} from "../models";
+import {TestRepository} from "../data/repos/impl/Test.repository";
 import {ITest} from "../interfaces";
-import {HydratedDocument} from "mongoose";
-export async function testDB(req: Request, res: Response) {
-    const newTest: HydratedDocument<ITest> = new TestModel({
-        name: 'record-2'
-    });
 
-    try {
-        await newTest.save();
-
-    } catch (e: any) {
-        console.log(e.message);
+export default class TestController {
+    constructor(private testRepo: TestRepository) {}
+    async getAll(req: Request, res: Response) {
+        const records = await this.testRepo.findAll();
+        res.status(200).json(records);
     }
 
-    let tests: HydratedDocument<ITest>[] = await TestModel.find();
-    res.status(200).json(tests);
+    // async function createTest(req: Request, res: Response) {
+    //
+    // }
 }

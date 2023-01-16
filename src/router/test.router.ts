@@ -1,6 +1,7 @@
-// import {Router} from "express";
-// import {testDB} from "../controllers/test.controller";
-//
-// export const router = Router();
-//
-// router.get('/', testDB);
+import {Router} from "express";
+import {testController} from "../controllers";
+
+export const router = Router();
+
+router.get('/', (req, res) => testController.getAll(req, res));
+// router.post('/', testController.createTest);

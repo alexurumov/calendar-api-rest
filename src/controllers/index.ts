@@ -1,9 +1,8 @@
-import * as meetingsController from './meetings.controller';
-import * as usersController from './users.controller';
-import * as testController from './test.controller';
+import TestController from './test.controller';
+import {TestRepository} from "../data/repos/impl/Test.repository";
 
+// Instantiate Test Controller and return it
+const testController = new TestController(new TestRepository());
 export {
-    meetingsController,
-    usersController,
     testController
 }
