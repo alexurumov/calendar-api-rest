@@ -22,6 +22,22 @@ export class TestService {
     async create(dto: TestDto): Promise<TestDto> {
         return toTestDto(await this.testRepository.create(dto));
     }
+
+    async findById(id: string): Promise<TestDto> {
+        return toTestDto(await this.testRepository.findById(id));
+    }
+
+    async update(id: string, dto: Partial<TestDto>): Promise<TestDto> {
+        return toTestDto(await this.testRepository.updateById(id, dto));
+    }
+
+    async delete(id: string): Promise<TestDto | null> {
+        const deleted = await this.testRepository.delete(id);
+        if (!deleted) {
+            return null
+        }
+        return toTestDto(deleted);
+    }
 }
 
 export const testService = new TestService(testRepository);

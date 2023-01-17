@@ -7,4 +7,8 @@ export interface TestDto extends BaseTestDto{
     _id?: string,
 }
 
+export interface PathParamTestDto {
+    id: string;
+}
+
 export interface ReqQueryTestDto extends Partial<BaseTestDto>{}
