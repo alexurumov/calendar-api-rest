@@ -5,7 +5,7 @@ export const router = Router();
 
 router.get('/', (req, res) => testController.getAll(req, res));
 
-// router.post('/', (req, res) => testController.create(req, res));
+router.post('/', (req, res) => testController.create(req, res));
 //
 // router.get('/:id', (req, res) => testController.getById(req, res));
 //

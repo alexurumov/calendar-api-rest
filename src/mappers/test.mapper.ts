@@ -1,7 +1,7 @@
 import {pojos, PojosMetadataMap} from "@automapper/pojos";
-import {TestEntity} from "../entities/baseTestEntity";
+import {TestEntity} from "../entities/test.entity";
 import {Types} from "mongoose";
-import {TestDto} from "../dtos/baseTestDto";
+import {TestDto} from "../dtos/base-test.dto";
 import {createMap, createMapper, typeConverter} from "@automapper/core";
 
 PojosMetadataMap.create<TestEntity>('TestEntity',
