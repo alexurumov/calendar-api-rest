@@ -27,7 +27,7 @@ createMap<UserEntity, UserDto>(
     'UserEntity',
     'UserDto',
     typeConverter(Types.ObjectId, String, (objectId) => objectId.toString()),
-    forMember((d) => d.password, ignore())
+    forMember((d) => d.password, ignore()),
 );
 
 createMap<UserDto, UserEntity>(

@@ -9,8 +9,6 @@ export class UserController {
         const dto: ReqQueryUserDto = req.query;
         const users = await this.userService.getAll(dto)
         res.status(200).json(users);
-
-
     }
 
     async create(req: Request<{}, {}, UserDto>, res: Response) {

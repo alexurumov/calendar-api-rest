@@ -3,6 +3,7 @@ import {BaseRepository} from "./base.repository";
 import {UserEntity} from "../entities/user.entity";
 import {UserDto} from "../dtos/user.dto";
 import {toUserEntity} from "../mappers/user.mapper";
+import {TestEntity} from "../entities/test.entity";
 
 const userSchema = new Schema<UserEntity>({
     username: {
@@ -35,7 +36,8 @@ export class UserRepository implements BaseRepository<UserEntity, UserDto> {
     }
 
     async findById(id: string): Promise<UserEntity> {
-        const entity = await userModel.findById(id);
+        // TODO: Population strategy succesfull!
+        const entity = await userModel.findById(id).populate<{ tests: TestEntity[] }>('tests');
         if (!entity) {
             //TODO: HTTP ERRORS!
             throw new Error('Not found');
@@ -48,7 +50,7 @@ export class UserRepository implements BaseRepository<UserEntity, UserDto> {
     }
 
     async updateById(id: string, dto: Partial<UserDto>): Promise<UserEntity> {
-        const entity = await userModel.findById(id);
+        const entity = await userModel.findById(id).populate('tests').exec();
         if (!entity) {
             // todo: use http-errors lib
             throw new Error('Not found');
