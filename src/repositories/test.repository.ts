@@ -1,9 +1,9 @@
 import {model, Schema} from "mongoose";
-import {TestEntity} from "../entities/test.entity";
+import {BaseTestEntity, TestEntity} from "../entities/baseTestEntity";
 import {BaseRepository} from "./base.repository";
-import {TestDto} from "../dtos/test.dto";
+import {BaseTestDto} from "../dtos/baseTestDto";
 
-const testSchema = new Schema<TestEntity>({
+const testSchema = new Schema<BaseTestEntity>({
     name: {
         type: String,
         required: true,
@@ -15,11 +15,11 @@ const testSchema = new Schema<TestEntity>({
 
 })
 
-const testModel = model<TestEntity>('Test', testSchema);
+const testModel = model<BaseTestEntity>('Test', testSchema);
 
-export class TestRepository implements BaseRepository<TestEntity, TestDto> {
-    async create(testData: TestDto): Promise<TestEntity> {
-        const entity: TestEntity = Object.assign({}, testData);
+export class TestRepository implements BaseRepository<BaseTestEntity, BaseTestDto> {
+    async create(testData: BaseTestDto): Promise<TestEntity> {
+        const entity: BaseTestEntity = Object.assign({}, testData);
         return testModel.create(entity);
     }
     async findAll(): Promise<TestEntity[]> {
@@ -34,15 +34,15 @@ export class TestRepository implements BaseRepository<TestEntity, TestDto> {
         return entity;
     }
 
-    findAllByMessage<ParamDto extends Pick<TestDto, 'message'>>(params: Required<ParamDto>): Promise<TestEntity[]> {
-        return testModel.find({message: params.message}).exec();
-    }
-
-    findAllByName<ParamDto extends Pick<TestDto, 'name'>>(params: Required<ParamDto>): Promise<TestEntity[]> {
+    findAllByName<ParamDto extends Pick<BaseTestDto, 'name'>>(params: Required<ParamDto>): Promise<TestEntity[]> {
         return testModel.find({name: params.name}).exec();
     }
 
-    async updateById(id: string, dto: TestDto): Promise<TestEntity> {
+    findAllByMessage<ParamDto extends Pick<BaseTestDto, 'message'>>(params: Required<ParamDto>): Promise<TestEntity[]> {
+        return testModel.find({message: params.message}).exec();
+    }
+
+    async updateById(id: string, dto: BaseTestDto): Promise<TestEntity> {
         const entity = await testModel.findById(id);
         if (!entity) {
             // todo: use http-errors lib
@@ -53,6 +53,8 @@ export class TestRepository implements BaseRepository<TestEntity, TestDto> {
     }
 
     async delete(id: string): Promise<TestEntity | null> {
-        return await testModel.findByIdAndDelete(id).exec();
+        return testModel.findByIdAndDelete(id);
     }
 }
+
+export const testRepository = new TestRepository();
