@@ -4,17 +4,14 @@ import {TestDto} from "../dtos/test.dto";
 import {TestEntity} from "../entities/test.entity";
 
 export default class TestController {
-    constructor(private testRepo: TestRepository) {
-    }
+    constructor(private testRepo: TestRepository) {}
 
     async getAll(req: Request, res: Response) {
         let tests: TestEntity[];
         if (req.query.name) {
             tests = await this.testRepo.findAllByName({name: req.query.name as string});
-            console.log(req.query.name);
         } else if (req.query.message) {
             tests = await this.testRepo.findAllByMessage({message: req.query.message as string});
-            console.log(req.query.message)
         } else {
             tests = await this.testRepo.findAll();
         }
@@ -28,7 +25,7 @@ export default class TestController {
     }
 
     async getById(req: Request, res: Response) {
-        const id: string | undefined = req.params.id;
+        const id: string | undefined = req.params.id.trim();
         if (!id) {
             res.status(400).json('ID missing! ')
         }
@@ -40,7 +37,7 @@ export default class TestController {
     }
 
     async updateById(req: Request, res: Response) {
-        const id: string | undefined = req.params.id;
+        const id: string | undefined = req.params.id.trim();
         if (!id) {
             res.status(400).json('ID missing! ')
         }
@@ -49,7 +46,7 @@ export default class TestController {
     }
 
     async deleteById(req: Request, res: Response) {
-        const id: string | undefined = req.params.id;
+        const id: string | undefined = req.params.id.trim();
         if (!id) {
             res.status(400).json('ID missing! ')
         }

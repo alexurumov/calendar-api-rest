@@ -45,6 +45,7 @@ export class TestRepository implements BaseRepository<TestEntity, TestDto> {
     async updateById(id: string, dto: TestDto): Promise<TestEntity> {
         const entity = await testModel.findById(id);
         if (!entity) {
+            // todo: use http-errors lib
             throw new Error('Not found');
         }
         Object.assign(entity, dto);
