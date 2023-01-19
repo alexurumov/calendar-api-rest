@@ -39,6 +39,10 @@ export class UserRepository implements BaseRepository<UserEntity, UserDto> {
         return entity;
     }
 
+    async findByUsername(username: string): Promise<UserEntity | null> {
+        return userModel.findOne({username});
+    }
+
     findAllByUsername<ParamDto extends Pick<UserDto, 'username'>>(params: Required<ParamDto>): Promise<UserEntity[]> {
         return userModel.find({name: params.username}).exec();
     }
