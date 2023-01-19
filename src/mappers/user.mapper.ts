@@ -9,7 +9,6 @@ PojosMetadataMap.create<UserEntity>('UserEntity',
         _id: Types.ObjectId,
         username: String,
         password: String,
-        tests: ['Test']
     }
 );
 PojosMetadataMap.create<UserDto>('UserDto',
@@ -17,7 +16,6 @@ PojosMetadataMap.create<UserDto>('UserDto',
         _id: String,
         username: String,
         password: String,
-        tests: ['Test']
     }
 );
 const mapper = createMapper({strategyInitializer: pojos()});

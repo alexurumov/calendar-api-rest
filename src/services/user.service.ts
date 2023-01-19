@@ -47,6 +47,20 @@ export class UserService {
         }
         return toUserDto(deleted);
     }
+
+    async register(dto: UserDto): Promise<Promise<UserDto>> {
+        const {username, password, confirmPassword} = dto;
+
+        if (!username.trim() || !password.trim() || !confirmPassword?.trim()) {
+            throw new Error('Invalid input');
+        }
+        if (password !== confirmPassword) {
+            throw new Error('Passwords do not match!');
+        }
+        dto.password = await toHash(password);
+        const entity = await this.userRepository.create(dto);
+        return toUserDto(entity);
+    }
 }
 
 export const userService = new UserService(userRepository);

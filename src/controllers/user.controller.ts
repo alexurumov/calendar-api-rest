@@ -56,6 +56,16 @@ export class UserController {
             res.status(200).json(deleted);
         }
     }
+
+    async register(req: Request<{}, {}, UserDto>, res: Response) {
+        const dto = req.body;
+        try {
+            const created = await this.userService.register(dto);
+            res.status(201).json(created);
+        } catch (err: any) {
+            res.status(400).json(err.message);
+        }
+    }
 }
 
 export const userController = new UserController(userService);
