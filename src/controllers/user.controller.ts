@@ -5,6 +5,7 @@ import {PathParamUserDto, ReqQueryUserDto, UserDto} from "../dtos/user.dto";
 export class UserController {
     constructor(private userService: UserService) {
     }
+
     async getAll(req: Request<{}, {}, {}, ReqQueryUserDto>, res: Response) {
         const dto: ReqQueryUserDto = req.query;
         const users = await this.userService.getAll(dto)

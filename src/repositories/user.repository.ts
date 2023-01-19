@@ -3,7 +3,6 @@ import {BaseRepository} from "./base.repository";
 import {UserEntity} from "../entities/user.entity";
 import {UserDto} from "../dtos/user.dto";
 import {toUserEntity} from "../mappers/user.mapper";
-import {TestEntity} from "../entities/test.entity";
 
 const userSchema = new Schema<UserEntity>({
     username: {
@@ -14,13 +13,7 @@ const userSchema = new Schema<UserEntity>({
     password: {
         type: String,
         required: true
-    },
-    tests: [
-        {
-            type: Schema.Types.ObjectId,
-            ref: "Test"
-        }
-    ],
+    }
 })
 
 const userModel = model<UserEntity>('User', userSchema);
@@ -36,8 +29,9 @@ export class UserRepository implements BaseRepository<UserEntity, UserDto> {
     }
 
     async findById(id: string): Promise<UserEntity> {
-        // TODO: Population strategy succesfull!
-        const entity = await userModel.findById(id).populate<{ tests: TestEntity[] }>('tests');
+        // Population strategy succesfull!
+        // const entity = await userModel.findById(id).populate<{ tests: TestEntity[] }>('tests');
+        const entity = await userModel.findById(id);
         if (!entity) {
             //TODO: HTTP ERRORS!
             throw new Error('Not found');
@@ -50,11 +44,13 @@ export class UserRepository implements BaseRepository<UserEntity, UserDto> {
     }
 
     async updateById(id: string, dto: Partial<UserDto>): Promise<UserEntity> {
-        const entity = await userModel.findById(id).populate('tests').exec();
+        const entity = await userModel.findById(id).exec();
         if (!entity) {
             // todo: use http-errors lib
             throw new Error('Not found');
         }
+        // const updated = Object.assign(entity, dto);
+        // return await updated.save();
         if (dto.username) {
             entity.username = dto.username;
         }

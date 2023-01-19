@@ -1,14 +1,11 @@
 import {UserRepository, userRepository} from "../repositories/user.repository";
 import {ReqQueryUserDto, UserDto} from "../dtos/user.dto";
-import {TestDto} from "../dtos/base-test.dto";
 import {toUserDto} from "../mappers/user.mapper";
 import {UserEntity} from "../entities/user.entity";
 import {toHash} from "../utils/bcrypt.util";
-import {testRepository, TestRepository} from "../repositories/test.repository";
-import {toTestDto} from "../mappers/test.mapper";
 
 export class UserService {
-    constructor(private userRepository: UserRepository, private testRepository: TestRepository) {
+    constructor(private userRepository: UserRepository) {
     }
 
     async getAll(dto: ReqQueryUserDto): Promise<UserDto[]> {
@@ -24,13 +21,14 @@ export class UserService {
 
     async create(dto: UserDto): Promise<UserDto> {
         dto.password = await toHash(dto.password);
-        // TODO: Only for testing purposes! Move to Manager layer!
-        const test = await this.testRepository.create({name: "userTest2", message: "test for User!"});
-        if (!dto.tests) {
-            dto.tests = new Array<TestDto>;
-        }
-        dto.tests.push(toTestDto(test));
-        return toUserDto(await this.userRepository.create(dto));
+        // Only for testing purposes! Move to Manager layer!
+        // const test = await this.testRepository.create({name: "userTest2", message: "test for User!"});
+        // if (!dto.tests) {
+        //     dto.tests = new Array<TestDto>;
+        // }
+        // dto.tests.push(toTestDto(test));
+        const entity = await this.userRepository.create(dto);
+        return toUserDto(entity);
     }
 
     async findById(id: string): Promise<UserDto> {
@@ -51,4 +49,4 @@ export class UserService {
     }
 }
 
-export const userService = new UserService(userRepository, testRepository);
+export const userService = new UserService(userRepository);
