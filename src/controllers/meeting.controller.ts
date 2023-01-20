@@ -2,76 +2,83 @@ import {Request, Response} from "express";
 import {MeetingService, meetingService} from "../services/meeting.service";
 import {MeetingDto, PathParamMeetingDto, ReqQueryMeetingDto} from "../dtos/meeting.dto";
 import {plainToClass} from "class-transformer";
-import {validate} from "class-validator";
+import {validateRequestBody} from "../utils/validate-request.util";
 
 export class MeetingController {
     constructor(private meetingService: MeetingService) {
     }
 
-    async getAll(req: Request<{}, {}, {}, ReqQueryMeetingDto>, res: Response) {
+    async getAll(req: Request<{}, {}, {}, ReqQueryMeetingDto>, res: Response): Promise<void> {
         const dto: ReqQueryMeetingDto = req.query;
         const meetings = await this.meetingService.getAll(dto)
         res.status(200).json(meetings);
+        return;
     }
 
-    async create(req: Request<{}, {}, MeetingDto>, res: Response): Promise<Response> {
+    async create(req: Request<{}, {}, MeetingDto>, res: Response): Promise<void> {
         // Tranform request body to MeeetingDto Class
         const meetingDto = plainToClass(MeetingDto, req.body, {excludeExtraneousValues: true});
 
         // Validate MeetingDto
-        const errors = await validate(meetingDto);
-        if (errors.length) {
-            return res.status(401).json(errors.map(err => {
-                for (const constraintsKey in err.constraints) {
-                    return ;
-                }
-            }));
+        if (!await validateRequestBody(meetingDto, res)) {
+            return;
         }
 
         try {
             const created = await this.meetingService.create(meetingDto);
-            return res.status(201).json(created);
+            res.status(201).json(created);
+            return;
         } catch (err: any) {
-            return res.status(401).json(err.message);
+            res.status(401).json(err.message);
+            return;
         }
     }
 
-    async getById(req: Request<PathParamMeetingDto>, res: Response): Promise<Response> {
+    async getById(req: Request<PathParamMeetingDto>, res: Response): Promise<void> {
         const id: string = req.params._id.trim();
         if (!id) {
-            return res.status(400).json('Meeting ID missing!')
+            res.status(400).json('Meeting ID missing!');
+            return;
         }
         const meeting = await this.meetingService.findById(id);
         if (!meeting) {
-            return res.status(404).json('No such meeting found');
+            res.status(404).json('No such meeting found');
+            return;
         }
-        return res.status(200).json(meeting);
+        res.status(200).json(meeting);
+        return;
     }
 
-    async updateById(req: Request<PathParamMeetingDto, {}, Partial<MeetingDto>>, res: Response): Promise<Response> {
+    async updateById(req: Request<PathParamMeetingDto, {}, Partial<MeetingDto>>, res: Response): Promise<void> {
         const id: string = req.params._id.trim();
         if (!id) {
-            return res.status(400).json('Meeting ID missing! ')
+            res.status(400).json('Meeting ID missing! ');
+            return;
         }
         const meetingDto = plainToClass(MeetingDto, req.body, {excludeExtraneousValues: true});
         try {
             const updated = await this.meetingService.update(id, meetingDto);
-            return res.status(200).json(updated);
+            res.status(200).json(updated);
+            return;
         } catch (err: any) {
-            return res.status(401).json(err.message);
+            res.status(401).json(err.message);
+            return;
         }
     }
 
-    async deleteById(req: Request<PathParamMeetingDto>, res: Response): Promise<Response> {
+    async deleteById(req: Request<PathParamMeetingDto>, res: Response): Promise<void> {
         const id = req.params._id.trim();
         if (!id) {
-            return res.status(400).json('ID missing! ')
+            res.status(400).json('ID missing! ');
+            return;
         }
         const deleted = await this.meetingService.delete(id);
         if (!deleted) {
-            return res.status(404).json('No such meeting found!');
+            res.status(404).json('No such meeting found!');
+            return;
         } else {
-            return res.status(200).json(deleted);
+            res.status(200).json(deleted);
+            return;
         }
     }
 }

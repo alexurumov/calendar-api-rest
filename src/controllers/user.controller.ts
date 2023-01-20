@@ -5,7 +5,7 @@ import {createToken} from "../utils/jwt.util";
 import * as dotenv from "dotenv";
 import * as process from "process";
 import {plainToClass} from "class-transformer";
-import {validate} from "class-validator";
+import {validateRequestBody} from "../utils/validate-request.util";
 
 dotenv.config();
 
@@ -20,16 +20,8 @@ export class UserController {
         const userRegisterDto = plainToClass(UserRegisterDto, req.body, {excludeExtraneousValues: true});
 
         // Validate RegisterUserDto
-
-        const errors = await validate(userRegisterDto);
-
-        // TODO: Refactor to util func
-        if (errors.length) {
-            return res.status(401).json(errors.map(err => {
-                for (const constraintsKey in err.constraints) {
-                    return err.constraints[constraintsKey];
-                }
-            }));
+        if (!await validateRequestBody(userRegisterDto, res)) {
+            return;
         }
 
         try {
@@ -45,16 +37,9 @@ export class UserController {
         // Transform req.body to RegisterUserDto
         const userLoginDto = plainToClass(UserLoginDto, req.body, {excludeExtraneousValues: true});
 
-        // Validate RegisterUserDto
-        const errors = await validate(userLoginDto);
-
-        // TODO: Refactor to util func
-        if (errors.length) {
-            return res.status(401).json(errors.map(err => {
-                for (const constraintsKey in err.constraints) {
-                    return err.constraints[constraintsKey];
-                }
-            }));
+        // Validate LoginUserDto
+        if (!await validateRequestBody(userLoginDto, res)) {
+            return;
         }
 
         try {
