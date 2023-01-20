@@ -1,7 +1,13 @@
 import {Types} from "mongoose";
+import {AutoMap} from "@automapper/classes";
 
-export interface TestEntity {
-    _id: Types.ObjectId;
-    name: string;
-    message?: string;
+export class TestEntity {
+    @AutoMap()
+    _id!: Types.ObjectId
+
+    @AutoMap()
+    name!: string;
+
+    @AutoMap()
+    message!: string;
 }

@@ -24,7 +24,11 @@ export class TestService {
     }
 
     async findById(id: string): Promise<TestDto> {
-        return toTestDto(await this.testRepository.findById(id));
+        const test = await this.testRepository.findById(id)
+        if (!test) {
+            throw new Error('Not Found!');
+        }
+        return toTestDto(test);
     }
 
     async update(id: string, dto: Partial<TestDto>): Promise<TestDto> {

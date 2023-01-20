@@ -28,12 +28,8 @@ export class TestRepository implements BaseRepository<TestEntity, TestDto> {
         return testModel.find();
     }
 
-    async findById(id: string): Promise<TestEntity> {
-        const entity = await testModel.findById(id);
-        if (!entity) {
-            throw new Error('Not found');
-        }
-        return entity;
+    async findById(id: string): Promise<TestEntity | null> {
+        return testModel.findById(id);
     }
 
     findAllByName<ParamDto extends Pick<TestDto, 'name'>>(params: Required<ParamDto>): Promise<TestEntity[]> {

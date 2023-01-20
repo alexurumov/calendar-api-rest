@@ -18,7 +18,7 @@ export class TestController {
     }
 
     async getById(req: Request<PathParamTestDto>, res: Response) {
-        const id: string = req.params.id.trim();
+        const id: string = req.params._id.trim();
         if (!id) {
             // TODO: HTTP ERRORS!
             res.status(400).json('ID missing!')
@@ -32,7 +32,7 @@ export class TestController {
     }
 
     async updateById(req: Request<PathParamTestDto, {}, Partial<TestDto>>, res: Response) {
-        const id: string = req.params.id.trim();
+        const id: string = req.params._id.trim();
         if (!id) {
             // TODO: HTTP ERRORS!
             res.status(400).json('ID missing! ')
@@ -43,7 +43,7 @@ export class TestController {
     }
 
     async deleteById(req: Request<PathParamTestDto>, res: Response) {
-        const id = req.params.id.trim();
+        const id = req.params._id.trim();
         if (!id) {
             // TODO: HTTP ERRORS!
             res.status(400).json('ID missing! ')

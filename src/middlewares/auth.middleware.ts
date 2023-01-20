@@ -18,7 +18,6 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
             next();
             return;
         }
-
         const jwtPayload = verifyToken(token, TOKEN_SECRET);
         const _id: string = jwtPayload._id;
         if (req.user) {
