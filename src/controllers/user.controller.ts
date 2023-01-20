@@ -1,7 +1,7 @@
 import {Request, Response} from "express";
 import {userService, UserService} from "../services/user.service";
 import {LoginUserDto, RegisterUserDto, UserDto} from "../dtos/user.dto";
-import {createToken} from "../utils/jwt";
+import {createToken} from "../utils/jwt.util";
 import * as dotenv from "dotenv";
 import * as process from "process";
 

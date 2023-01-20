@@ -2,6 +2,7 @@ import {MeetingRepository, meetingRepository} from "../repositories/meeting.repo
 import {MeetingEntity} from "../entities/meeting.entity";
 import {MeetingDto, ReqQueryMeetingDto} from "../dtos/meeting.dto";
 import {toMeetingDto} from "../mappers/meeting.mapper";
+import {validateTimes} from "../utils/luxon.util";
 
 export class MeetingService {
     constructor(private meetingRepository: MeetingRepository) {
@@ -25,6 +26,12 @@ export class MeetingService {
         if (!name || !startTime || !endTime || !room || !name.trim()  || !room.trim()) {
             throw new Error('Invalid meeting input!');
         }
+
+        // Validate times
+        if (!validateTimes(startTime, endTime)) {
+            throw new Error('Start time must not be after end time!');
+        }
+
         const created = await this.meetingRepository.create(dto);
         return toMeetingDto(created);
     }

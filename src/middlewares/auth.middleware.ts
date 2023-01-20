@@ -1,6 +1,6 @@
 import {NextFunction, Request, Response} from "express";
 import * as dotenv from "dotenv";
-import {verifyToken} from "../utils/jwt";
+import {verifyToken} from "../utils/jwt.util";
 import * as process from "process";
 
 dotenv.config();
