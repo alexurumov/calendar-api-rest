@@ -1,6 +1,7 @@
 import {Request, Response} from "express";
 import {MeetingService, meetingService} from "../services/meeting.service";
 import {MeetingDto, PathParamMeetingDto, ReqQueryMeetingDto} from "../dtos/meeting.dto";
+import {plainToClass} from "class-transformer";
 
 export class MeetingController {
     constructor(private meetingService: MeetingService) {
@@ -13,8 +14,10 @@ export class MeetingController {
     }
 
     async create(req: Request<{}, {}, MeetingDto>, res: Response) {
+        const meetingDto = plainToClass(MeetingDto, req.body, {excludeExtraneousValues: true});
+
         try {
-            const created = await this.meetingService.create(req.body);
+            const created = await this.meetingService.create(meetingDto);
             res.status(201).json(created);
         } catch (err: any) {
             res.status(401).json(err.message);
@@ -40,13 +43,16 @@ export class MeetingController {
         if (!id) {
             // TODO: HTTP ERRORS!
             res.status(400).json('Meeting ID missing! ')
+            return
         }
-        const dto = req.body;
-        const updated = await this.meetingService.update(id, dto);
-        if (!updated) {
-            res.status(404).json('No such meeting found');
+        const meetingDto = plainToClass(MeetingDto, req.body, {excludeExtraneousValues: true});
+        try {
+            const updated = await this.meetingService.update(id, meetingDto);
+            res.status(200).json(updated);
+            return
+        } catch (err: any) {
+            res.status(401).json(err.message);
         }
-        res.status(200).json(updated);
     }
 
     async deleteById(req: Request<PathParamMeetingDto>, res: Response) {

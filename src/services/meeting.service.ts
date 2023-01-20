@@ -2,7 +2,7 @@ import {MeetingRepository, meetingRepository} from "../repositories/meeting.repo
 import {MeetingEntity} from "../entities/meeting.entity";
 import {MeetingDto, ReqQueryMeetingDto} from "../dtos/meeting.dto";
 import {toMeetingDto} from "../mappers/meeting.mapper";
-import {validateTimes} from "../utils/luxon.util";
+import {validateNewMeeting, validateUpdateMeeting} from "../utils/validateMeetings.util";
 
 export class MeetingService {
     constructor(private meetingRepository: MeetingRepository) {
@@ -27,11 +27,9 @@ export class MeetingService {
             throw new Error('Invalid meeting input!');
         }
 
-        // Validate times
-        if (!validateTimes(startTime, endTime)) {
-            throw new Error('Start time must not be after end time!');
-        }
-
+        // Validate meeting
+        const all = await this.meetingRepository.findAll();
+        validateNewMeeting(dto, all);
         const created = await this.meetingRepository.create(dto);
         return toMeetingDto(created);
     }
@@ -45,6 +43,12 @@ export class MeetingService {
     }
 
     async update(id: string, dto: Partial<MeetingDto>): Promise<MeetingDto | null> {
+        const existing = await this.meetingRepository.findById(id);
+        const all = await this.meetingRepository.findAll();
+
+        // Validate meeting
+        validateUpdateMeeting(existing, dto, all);
+
         const updated = await this.meetingRepository.updateById(id, dto);
         if (!updated) {
             return null;
