@@ -2,7 +2,7 @@ import {MeetingRepository, meetingRepository} from "../repositories/meeting.repo
 import {MeetingEntity} from "../entities/meeting.entity";
 import {MeetingDto, ReqQueryMeetingDto} from "../dtos/meeting.dto";
 import {toMeetingDto} from "../mappers/meeting.mapper";
-import {validateNewMeeting, validateUpdateMeeting} from "../utils/validateMeetings.util";
+import {validateNewMeeting, validateUpdateMeeting} from "../utils/validate-meetings.util";
 
 export class MeetingService {
     constructor(private meetingRepository: MeetingRepository) {
@@ -22,12 +22,7 @@ export class MeetingService {
     }
 
     async create(dto: MeetingDto): Promise<MeetingDto> {
-        const {name, startTime, endTime, room} = dto;
-        if (!name || !startTime || !endTime || !room || !name.trim()  || !room.trim()) {
-            throw new Error('Invalid meeting input!');
-        }
-
-        // Validate meeting
+        // Validate Specific Meeting requirements!
         const all = await this.meetingRepository.findAll();
         validateNewMeeting(dto, all);
         const created = await this.meetingRepository.create(dto);
@@ -46,7 +41,7 @@ export class MeetingService {
         const existing = await this.meetingRepository.findById(id);
         const all = await this.meetingRepository.findAll();
 
-        // Validate meeting
+        // Validate specific meeting requirements
         validateUpdateMeeting(existing, dto, all);
 
         const updated = await this.meetingRepository.updateById(id, dto);
