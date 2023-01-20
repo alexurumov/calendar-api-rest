@@ -1,12 +1,16 @@
-export interface UserDto{
-    _id?: string,
-    username: string,
-    password: string,
-    confirmPassword?: string
+import {AutoMap} from "@automapper/classes";
+
+export class UserDto{
+    @AutoMap()
+    _id?: string;
+    @AutoMap()
+    username!: string;
+    @AutoMap()
+    password!: string;
+
+    confirmPassword?: string;
 }
 
-export interface PathParamUserDto {
-    id: string;
-}
+export type RegisterUserDto = Required<Pick<UserDto, "username" | "password" | "confirmPassword">>
 
-export interface ReqQueryUserDto extends Partial<UserDto>{}
+export type LoginUserDto = Required<Pick<UserDto, "username" | "password">>

@@ -1,38 +1,24 @@
-import {pojos, PojosMetadataMap} from "@automapper/pojos";
 import {Types} from "mongoose";
 import {createMap, createMapper, forMember, ignore, typeConverter} from "@automapper/core";
 import {UserEntity} from "../entities/user.entity";
 import {UserDto} from "../dtos/user.dto";
+import {classes} from "@automapper/classes";
 
-PojosMetadataMap.create<UserEntity>('UserEntity',
-    {
-        _id: Types.ObjectId,
-        username: String,
-        password: String,
-    }
-);
-PojosMetadataMap.create<UserDto>('UserDto',
-    {
-        _id: String,
-        username: String,
-        password: String,
-    }
-);
-const mapper = createMapper({strategyInitializer: pojos()});
+const mapper = createMapper({strategyInitializer: classes()});
 
-createMap<UserEntity, UserDto>(
+createMap(
     mapper,
-    'UserEntity',
-    'UserDto',
+    UserEntity,
+    UserDto,
     typeConverter(Types.ObjectId, String, (objectId) => objectId.toString()),
     forMember((d) => d.password, ignore()),
 );
 
 createMap<UserDto, UserEntity>(
     mapper,
-    'UserDto',
-    'UserEntity',
+    UserDto,
+    UserEntity
 );
 
-export const toUserDto = (e: UserEntity) => mapper.map<UserEntity, UserDto>(e, 'UserEntity', 'UserDto');
-export const toUserEntity = (d: UserDto) => mapper.map<UserDto, UserEntity>(d, 'UserDto', 'UserEntity');
+export const toUserDto = (e: UserEntity) => mapper.map(e, UserEntity,UserDto);
+export const toUserEntity = (d: UserDto) => mapper.map(d, UserDto, UserEntity);

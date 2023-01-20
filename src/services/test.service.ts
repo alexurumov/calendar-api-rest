@@ -4,7 +4,8 @@ import {ReqQueryTestDto, TestDto} from "../dtos/base-test.dto";
 import {TestEntity} from "../entities/test.entity";
 
 export class TestService {
-    constructor(private testRepository: TestRepository) {}
+    constructor(private testRepository: TestRepository) {
+    }
 
     async getAll(dto: ReqQueryTestDto): Promise<TestDto[]> {
         const {name, message} = dto;
@@ -20,25 +21,32 @@ export class TestService {
     }
 
     async create(dto: TestDto): Promise<TestDto> {
-        return toTestDto(await this.testRepository.create(dto));
+        const created = await this.testRepository.create(dto);
+        return toTestDto(created);
     }
 
     async findById(id: string): Promise<TestDto> {
         const test = await this.testRepository.findById(id)
         if (!test) {
+            // TODO: HTTP Errors
             throw new Error('Not Found!');
         }
         return toTestDto(test);
     }
 
     async update(id: string, dto: Partial<TestDto>): Promise<TestDto> {
-        return toTestDto(await this.testRepository.updateById(id, dto));
+        const updated = await this.testRepository.updateById(id, dto);
+        if (!updated) {
+            throw new Error('Update failed!');
+        }
+        return toTestDto(updated);
     }
 
-    async delete(id: string): Promise<TestDto | null> {
+    async delete(id: string): Promise<TestDto> {
         const deleted = await this.testRepository.delete(id);
         if (!deleted) {
-            return null
+            // TODO: HTTP Errors
+            throw new Error('Delete failed!')
         }
         return toTestDto(deleted);
     }

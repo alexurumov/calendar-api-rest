@@ -1,7 +1,13 @@
 import {Types} from "mongoose";
+import {AutoMap} from "@automapper/classes";
 
-export interface UserEntity {
-    _id: Types.ObjectId;
-    username: string;
-    password: string;
+export class UserEntity {
+    @AutoMap()
+    _id!: Types.ObjectId;
+
+    @AutoMap()
+    username!: string;
+
+    @AutoMap()
+    password!: string;
 }

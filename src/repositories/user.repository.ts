@@ -24,19 +24,14 @@ export class UserRepository implements BaseRepository<UserEntity, UserDto> {
         return userModel.create(entity);
     }
 
-    async findAll(): Promise<UserEntity[]> {
+    async findAll(): Promise<UserEntity[] | undefined> {
         return userModel.find();
     }
 
-    async findById(id: string): Promise<UserEntity> {
+    async findById(id: string): Promise<UserEntity | null> {
         // Population strategy succesfull!
         // const entity = await userModel.findById(id).populate<{ tests: TestEntity[] }>('tests');
-        const entity = await userModel.findById(id);
-        if (!entity) {
-            //TODO: HTTP ERRORS!
-            throw new Error('Not found');
-        }
-        return entity;
+        return userModel.findById(id);
     }
 
     async findByUsername(username: string): Promise<UserEntity | null> {
@@ -47,19 +42,8 @@ export class UserRepository implements BaseRepository<UserEntity, UserDto> {
         return userModel.find({name: params.username}).exec();
     }
 
-    async updateById(id: string, dto: Partial<UserDto>): Promise<UserEntity> {
-        const entity = await userModel.findById(id).exec();
-        if (!entity) {
-            // todo: use http-errors lib
-            throw new Error('Not found');
-        }
-        // const updated = Object.assign(entity, dto);
-        // return await updated.save();
-        if (dto.username) {
-            entity.username = dto.username;
-        }
-        entity.update()
-        return await entity.save();
+    async updateById(id: string, dto: Partial<UserDto>): Promise<UserEntity | null> {
+        return userModel.findByIdAndUpdate(id, dto);
     }
 
     async delete(id: string): Promise<UserEntity | null> {

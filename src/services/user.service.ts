@@ -7,52 +7,13 @@ export class UserService {
     constructor(private userRepository: UserRepository) {
     }
 
-    // async getAll(dto: ReqQueryUserDto): Promise<UserDto[]> {
-    //     const {username} = dto;
-    //     let users: UserEntity[];
-    //     if (username) {
-    //         users = await this.userRepository.findAllByUsername({username});
-    //     } else {
-    //         users = await this.userRepository.findAll();
-    //     }
-    //     return users.map(toUserDto);
-    // }
-    //
-    // async create(dto: UserDto): Promise<UserDto> {
-    //     dto.password = await toHash(dto.password);
-    //     // Only for testing purposes! Move to Manager layer!
-    //     // const test = await this.testRepository.create({name: "userTest2", message: "test for User!"});
-    //     // if (!dto.tests) {
-    //     //     dto.tests = new Array<TestDto>;
-    //     // }
-    //     // dto.tests.push(toTestDto(test));
-    //     const entity = await this.userRepository.create(dto);
-    //     return toUserDto(entity);
-    // }
-    //
-    // async findById(id: string): Promise<UserDto> {
-    //     const users = await this.userRepository.findById(id);
-    //     return toUserDto(users);
-    // }
-    //
-    // async update(id: string, dto: Partial<UserDto>): Promise<UserDto> {
-    //     return toUserDto(await this.userRepository.updateById(id, dto));
-    // }
-    //
-    // async delete(id: string): Promise<UserDto | null> {
-    //     const deleted = await this.userRepository.delete(id);
-    //     if (!deleted) {
-    //         return null
-    //     }
-    //     return toUserDto(deleted);
-    // }
-
     async register(dto: UserDto): Promise<UserDto> {
         const {username, password, confirmPassword} = dto;
 
-        if (!username || !password || !confirmPassword || !username.trim() || !password.trim() || !confirmPassword?.trim()) {
+        if (!username || !password || !confirmPassword || !username.trim() || !password.trim() || !confirmPassword.trim()) {
             //TODO: HTTP ERRORS
-            throw new Error('Invalid input');
+            //TODO: Move validation to controller!
+            throw new Error('Invalid user input');
         }
         if (password !== confirmPassword) {
             //TODO: HTTP ERRORS
