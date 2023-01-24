@@ -2,31 +2,31 @@ import {NextFunction, Request, Response} from "express";
 import * as dotenv from "dotenv";
 import {verifyToken} from "../utils/jwt.util";
 import * as process from "process";
-
-dotenv.config();
+import createHttpError from "http-errors";
+import {JsonWebTokenError} from "jsonwebtoken";
 
 dotenv.config();
 
 const TOKEN_SECRET: string = process.env.TOKEN_SECRET || 'Calendar Api Secret!';
 const COOKIE_NAME: string = process.env.COOKIE_NAME || 'calendar-api-cookie-name';
 
-export const auth = async (req: Request, res: Response, next: NextFunction) => {
+export const auth = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     try {
         const token: string = req.cookies[COOKIE_NAME];
         if (!token) {
             req.user = undefined;
-            next();
-            return;
+            return next();
         }
+
         const jwtPayload = verifyToken(token, TOKEN_SECRET);
-        const _id: string = jwtPayload._id;
-        if (req.user) {
-            res.status(401).send("Already logged in! ");
-        }
+        const _id: string = jwtPayload.obj._id;
         req.user = {_id};
 
-        next();
-    } catch (err) {
-        res.status(401).send({message: "Invalid token!"});
+        return next();
+    } catch (err: unknown) {
+        if (err instanceof JsonWebTokenError) {
+            return next(createHttpError(498, 'Invalid Token!'));
+        }
+        return next(err);
     }
 }

@@ -15,7 +15,7 @@ export class MeetingController {
             const meetings = await this.meetingService.getAll(dto)
             return res.status(200).json(meetings);
         } catch (err: unknown) {
-            next(err);
+            return next(err);
         }
     }
 
@@ -29,7 +29,7 @@ export class MeetingController {
             const created = await this.meetingService.create(meetingDto);
             return res.status(201).json(created);
         } catch (err: unknown) {
-            next(err);
+            return next(err);
         }
     }
 
@@ -43,7 +43,7 @@ export class MeetingController {
             const meeting = await this.meetingService.findById(id);
             return res.status(200).json(meeting);
         } catch (err: unknown) {
-            next(err)
+            return next(err)
         }
     }
 
@@ -60,7 +60,7 @@ export class MeetingController {
             const updated = await this.meetingService.update(id, meetingDto);
             return res.status(200).json(updated);
         } catch (err: unknown) {
-            next(err)
+            return next(err)
         }
     }
 
@@ -74,7 +74,7 @@ export class MeetingController {
             const deleted = await this.meetingService.delete(id);
             return res.status(200).json(deleted);
         } catch (err: unknown) {
-            next(err)
+            return next(err)
         }
     }
 }

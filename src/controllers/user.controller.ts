@@ -26,7 +26,7 @@ export class UserController {
             // TODO: create token -> move to Middleware
             return res.status(201).json(created);
         } catch (err: unknown) {
-            next(err);
+            return next(err);
         }
 
     }
@@ -43,7 +43,7 @@ export class UserController {
             createToken<UserDto>(res, user);
             return res.status(200).json(user);
         } catch (err: unknown) {
-            next(err);
+            return next(err);
         }
     }
 
