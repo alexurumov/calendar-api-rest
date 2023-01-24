@@ -1,4 +1,4 @@
-import {Express, json} from "express";
+import {Express} from "express";
 import cookieParser from 'cookie-parser';
 import * as dotenv from "dotenv";
 import bodyParser from "body-parser";

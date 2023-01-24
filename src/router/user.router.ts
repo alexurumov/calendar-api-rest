@@ -9,6 +9,6 @@ export const router = Router();
 // router.put('/:id', (req, res) => userController.updateById(req, res));
 // router.delete('/:id', (req, res) => userController.deleteById(req, res));
 
-router.post('/register', (req, res) => userController.register(req, res));
-router.post('/login', (req, res) => userController.login(req, res));
+router.post('/register', (req, res, next) => userController.register(req, res, next));
+router.post('/login', (req, res, next) => userController.login(req, res, next));
 router.get('/logout', (req, res) => userController.logout(req, res));

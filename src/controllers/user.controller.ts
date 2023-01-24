@@ -1,4 +1,4 @@
-import {Request, Response} from "express";
+import {NextFunction, Request, Response} from "express";
 import {userService, UserService} from "../services/user.service";
 import {UserDto, UserLoginDto, UserRegisterDto} from "../dtos/user.dto";
 import {createToken} from "../utils/jwt.util";
@@ -12,48 +12,43 @@ dotenv.config();
 const COOKIE_NAME: string = process.env.COOKIE_NAME || 'calendar-api-cookie-name';
 
 export class UserController {
-    constructor(private userService: UserService) {
-    }
+    constructor(private userService: UserService) {}
 
-    async register(req: Request<{}, {}, UserRegisterDto>, res: Response) {
+    async register(req: Request<{}, {}, UserRegisterDto>, res: Response, next: NextFunction): Promise<Response | void> {
         // Transform req.body to RegisterUserDto
         const userRegisterDto = plainToClass(UserRegisterDto, req.body, {excludeExtraneousValues: true});
 
-        // Validate RegisterUserDto
-        if (!await validateRequestBody(userRegisterDto, res)) {
-            return;
-        }
-
         try {
+            // Validate RegisterUserDto
+            await validateRequestBody(userRegisterDto);
             const created = await this.userService.register(userRegisterDto);
             createToken<UserDto>(res, created);
-            res.status(201).json(created);
-        } catch (err: any) {
-            res.status(400).json(err.message);
+            // TODO: create token -> move to Middleware
+            return res.status(201).json(created);
+        } catch (err: unknown) {
+            next(err);
         }
+
     }
 
-    async login(req: Request<{}, {}, UserLoginDto>, res: Response) {
+    async login(req: Request<{}, {}, UserLoginDto>, res: Response, next: NextFunction): Promise<Response | void> {
         // Transform req.body to RegisterUserDto
         const userLoginDto = plainToClass(UserLoginDto, req.body, {excludeExtraneousValues: true});
 
-        // Validate LoginUserDto
-        if (!await validateRequestBody(userLoginDto, res)) {
-            return;
-        }
-
         try {
+            // Validate LoginUserDto
+            await validateRequestBody(userLoginDto);
             const user = await this.userService.login(userLoginDto);
+            // TODO: create token -> move to Middleware
             createToken<UserDto>(res, user);
-            res.status(200).json(user);
-        } catch (err: any) {
-            res.status(400).json(err.message);
+            return res.status(200).json(user);
+        } catch (err: unknown) {
+            next(err);
         }
     }
 
-    logout(req: Request, res: Response) {
-        res.clearCookie(COOKIE_NAME);
-        res.status(200).json('Logged out!');
+    logout(req: Request, res: Response): Response {
+        return res.clearCookie(COOKIE_NAME).status(200).json('Logged out!');
     }
 }
 

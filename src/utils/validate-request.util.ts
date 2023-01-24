@@ -1,17 +1,18 @@
 import {validate} from "class-validator";
-import {Response} from "express";
+import createHttpError from "http-errors";
 
-export async function validateRequestBody<T extends Object>(dto: T, res: Response): Promise<boolean> {
+export async function validateRequestBody<T extends Object>(dto: T): Promise<void> {
     const errors = await validate(dto);
+
     if (errors.length) {
-        res.status(401).json(errors.map(err => {
+        let result: string = '';
+        errors.forEach(err => {
             for (const constraintsKey in err.constraints) {
-                return err.constraints[constraintsKey];
+                result += `${err.constraints[constraintsKey]}; `;
             }
-        }));
-        return false;
+        });
+        throw createHttpError.BadRequest(result);
     }
-    return true;
 }
 
 

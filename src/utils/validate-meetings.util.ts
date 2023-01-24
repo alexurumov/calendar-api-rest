@@ -1,11 +1,12 @@
 import {validateTimes} from "./luxon.util";
 import {MeetingEntity} from "../entities/meeting.entity";
 import {MeetingDto} from "../dtos/meeting.dto";
+import createHttpError from "http-errors";
 
-export function validateUpdateMeeting(existing: MeetingEntity | null, dto: Partial<MeetingDto>, all: MeetingEntity[]) {
+export function validateUpdateMeeting(existing: MeetingEntity | null, dto: Partial<MeetingDto>, all: MeetingEntity[]): void {
     // Does meeting exist?
     if (!existing) {
-        throw new Error('No such meeting!');
+        throw createHttpError.NotFound('No such Meeting found!');
     }
 
     // Is name unique?
@@ -14,34 +15,34 @@ export function validateUpdateMeeting(existing: MeetingEntity | null, dto: Parti
         const filtered = all.filter(m => m.name !== existing.name);
         // Check if there is a meeting with the same name
         if (filtered.some(m => m.name === existing.name)) {
-            throw new Error('Name is already taken!');
+            throw createHttpError.Conflict('Name is already taken!')
         }
     }
 
     // Is start time before end time?
     if (dto.startTime) {
         if (!validateTimes(dto.startTime, existing.endTime)) {
-            throw new Error('Start time must not be after end time!');
+            throw createHttpError.BadRequest('Start time must not be after end time!')
         }
     }
 
     // Is end date after start date?
     if (dto.endTime) {
         if (!validateTimes(existing.startTime, dto.endTime)) {
-            throw new Error('End time must not be before start time!');
+            throw createHttpError.BadRequest('End time must not be before start time!')
         }
     }
 }
 
-export function validateNewMeeting(dto: MeetingDto, all: MeetingEntity[]) {
+export function validateNewMeeting(dto: MeetingDto, all: MeetingEntity[]): void {
     // Is name unique?
     if (dto.name) {
         // Check if there is a meeting with the same name
         if (all.some(m => m.name === dto.name)) {
-            throw new Error('Name is already taken!');
+            throw createHttpError.Conflict('Name is already taken!')
         }
     }
     if (!validateTimes(dto.startTime, dto.endTime)) {
-        throw new Error('Start time must not be after end time!');
+        throw createHttpError.BadRequest('Start time must not be after end time!')
     }
 }

@@ -3,10 +3,10 @@ import {MeetingEntity} from "../entities/meeting.entity";
 import {MeetingDto, ReqQueryMeetingDto} from "../dtos/meeting.dto";
 import {toMeetingDto} from "../mappers/meeting.mapper";
 import {validateNewMeeting, validateUpdateMeeting} from "../utils/validate-meetings.util";
+import createHttpError from "http-errors";
 
 export class MeetingService {
-    constructor(private meetingRepository: MeetingRepository) {
-    }
+    constructor(private meetingRepository: MeetingRepository) {}
 
     async getAll(dto: ReqQueryMeetingDto): Promise<MeetingDto[]> {
         const {name, room} = dto;
@@ -29,32 +29,31 @@ export class MeetingService {
         return toMeetingDto(created);
     }
 
-    async findById(id: string): Promise<MeetingDto | null> {
+    async findById(id: string): Promise<MeetingDto> {
         const meeting = await this.meetingRepository.findById(id);
         if (!meeting) {
-            return null
+            throw createHttpError.NotFound('No such Meeting found!');
         }
         return toMeetingDto(meeting);
     }
 
-    async update(id: string, dto: Partial<MeetingDto>): Promise<MeetingDto | null> {
-        const existing = await this.meetingRepository.findById(id);
-        const all = await this.meetingRepository.findAll();
+    async update(id: string, dto: Partial<MeetingDto>): Promise<MeetingDto> {
+        const [existing, all] = await Promise.all([this.meetingRepository.findById(id), this.meetingRepository.findAll()]);
 
         // Validate specific meeting requirements
         validateUpdateMeeting(existing, dto, all);
 
         const updated = await this.meetingRepository.updateById(id, dto);
         if (!updated) {
-            return null;
+            throw createHttpError.BadRequest('Invalid input!');
         }
         return toMeetingDto(updated);
     }
 
-    async delete(id: string): Promise<MeetingDto | null> {
+    async delete(id: string): Promise<MeetingDto> {
         const deleted = await this.meetingRepository.delete(id);
         if (!deleted) {
-            return null;
+            throw createHttpError.NotFound('No such Meeting!');
         }
         return toMeetingDto(deleted);
     }
