@@ -1,7 +1,6 @@
 import {NextFunction, Request, Response} from "express";
 import {userService, UserService} from "../services/user.service";
-import {UserDto, UserLoginDto, UserRegisterDto} from "../dtos/user.dto";
-import {createToken} from "../utils/jwt.util";
+import {UserLoginDto, UserRegisterDto} from "../dtos/user.dto";
 import * as dotenv from "dotenv";
 import * as process from "process";
 import {plainToClass} from "class-transformer";
@@ -14,34 +13,34 @@ const COOKIE_NAME: string = process.env.COOKIE_NAME || 'calendar-api-cookie-name
 export class UserController {
     constructor(private userService: UserService) {}
 
-    async register(req: Request<{}, {}, UserRegisterDto>, res: Response, next: NextFunction): Promise<Response | void> {
+    async register(req: Request<{}, {}, UserRegisterDto>, res: Response, next: NextFunction): Promise<void> {
         // Transform req.body to RegisterUserDto
         const userRegisterDto = plainToClass(UserRegisterDto, req.body, {excludeExtraneousValues: true});
 
         try {
             // Validate RegisterUserDto
             await validateRequestBody(userRegisterDto);
-            const created = await this.userService.register(userRegisterDto);
-            createToken<UserDto>(res, created);
-            // TODO: create token -> move to Middleware
-            return res.status(201).json(created);
+
+            // Transfer data to next middleware, so responce could be constructed!
+            res.locals.created = await this.userService.register(userRegisterDto);
+            return next();
         } catch (err: unknown) {
             return next(err);
         }
 
     }
 
-    async login(req: Request<{}, {}, UserLoginDto>, res: Response, next: NextFunction): Promise<Response | void> {
+    async login(req: Request<{}, {}, UserLoginDto>, res: Response, next: NextFunction): Promise<void> {
         // Transform req.body to RegisterUserDto
         const userLoginDto = plainToClass(UserLoginDto, req.body, {excludeExtraneousValues: true});
 
         try {
             // Validate LoginUserDto
             await validateRequestBody(userLoginDto);
-            const user = await this.userService.login(userLoginDto);
-            // TODO: create token -> move to Middleware
-            createToken<UserDto>(res, user);
-            return res.status(200).json(user);
+
+            // Transfer data to next middleware, so responce could be constructed!
+            res.locals.created = await this.userService.login(userLoginDto);
+            return next();
         } catch (err: unknown) {
             return next(err);
         }
