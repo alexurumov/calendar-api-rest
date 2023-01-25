@@ -6,7 +6,7 @@ export async function validateRequestBody<T extends Object> (dto: T): Promise<vo
 
   if (errors.length) {
     let result: string = ''
-    errors.forEach(err => {
+    errors.forEach((err) => {
       for (const constraintsKey in err.constraints) {
         result += `${err.constraints[constraintsKey]}; `
       }
