@@ -1,9 +1,9 @@
 import { validateTimes } from './luxon.util';
 import { type MeetingRoomEntity } from '../entities/meeting-room.entity';
-import { type MeetingRoomDto } from '../dtos/meeting-room.dto';
+import { type MeetingRoomDto, type MeetingRoomUpdateDto } from '../dtos/meeting-room.dto';
 import createHttpError from 'http-errors';
 
-export function validateUpdateMeeting (existing: MeetingRoomEntity | null, dto: Partial<MeetingRoomDto>, all: MeetingRoomEntity[]): void {
+export function validateUpdateMeeting (existing: MeetingRoomEntity | null, dto: MeetingRoomUpdateDto, all: MeetingRoomEntity[]): void {
     // Does meeting exist?
     if (!existing) {
         throw createHttpError.NotFound('No such Meeting found!');
@@ -14,7 +14,7 @@ export function validateUpdateMeeting (existing: MeetingRoomEntity | null, dto: 
     // Exclude current meeting from check
         const filtered = all.filter(m => m.name !== existing.name);
         // Check if there is a meeting with the same name
-        if (filtered.some(m => m.name === existing.name)) {
+        if (filtered.some(m => m.name === dto.name)) {
             throw createHttpError.Conflict('Name is already taken!');
         }
     }

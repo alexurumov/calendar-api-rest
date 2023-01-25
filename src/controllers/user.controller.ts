@@ -1,10 +1,11 @@
 import { type NextFunction, type Request, type Response } from 'express';
 import { userService, type UserService } from '../services/user.service';
-import { type ReqQueryUserDto, UserDto, UserRegisterDto } from '../dtos/user.dto';
+import { type PathParamUserDto, type ReqQueryUserDto, UserDto, UserRegisterDto, UserUpdateDto } from '../dtos/user.dto';
 import * as dotenv from 'dotenv';
 import * as process from 'process';
 import { plainToClass } from 'class-transformer';
 import { validateRequestBody } from '../utils/validate-request.util';
+import createHttpError from 'http-errors';
 
 dotenv.config();
 
@@ -54,6 +55,24 @@ export class UserController {
             const dto: ReqQueryUserDto = req.body;
             const users = await this.userService.getAll(dto);
             return res.status(200).json(users);
+        } catch (err: unknown) {
+            next(err);
+        }
+    }
+
+    async updateById (req: Request<PathParamUserDto, {}, UserUpdateDto>, res: Response, next: NextFunction): Promise<Response | void> {
+        // Transform request body to UserUpdateDto Class
+        const userDto = plainToClass(UserUpdateDto, req.body, { excludeExtraneousValues: true });
+
+        try {
+            // Validate request params ID
+            const id: string = req.params._id.trim();
+            if (!id) {
+                throw createHttpError.BadRequest('User ID missing!');
+            }
+            await validateRequestBody(userDto);
+            const updated = await this.userService.update(id, userDto);
+            return res.status(200).json(updated);
         } catch (err: unknown) {
             next(err);
         }

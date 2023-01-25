@@ -1,9 +1,10 @@
 import { type UserRepository, userRepository } from '../repositories/user.repository';
-import { type ReqQueryUserDto, type UserDto, type UserRegisterDto } from '../dtos/user.dto';
+import { type ReqQueryUserDto, type UserDto, type UserRegisterDto, type UserUpdateDto } from '../dtos/user.dto';
 import { toUserDto } from '../mappers/user.mapper';
 import { toHash, verifyHash } from '../utils/bcrypt.util';
 import createHttpError from 'http-errors';
 import { type UserEntity } from '../entities/user.entity';
+import { validateUpdateUser } from '../utils/validate-user.util';
 
 export class UserService {
     constructor (private readonly userRepository: UserRepository) {}
@@ -53,6 +54,19 @@ export class UserService {
             users = await this.userRepository.findAll();
         }
         return users.map(toUserDto);
+    }
+
+    async update (id: string, userDto: UserUpdateDto): Promise<UserDto> {
+        const [existing, all] = await Promise.all([this.userRepository.findById(id), this.userRepository.findAll()]);
+
+        // Validate specific meeting requirements
+        validateUpdateUser(existing, userDto, all);
+
+        const updated = await this.userRepository.updateById(id, userDto);
+        if (updated == null) {
+            throw createHttpError.BadRequest('Invalid input!');
+        }
+        return toUserDto(updated);
     }
 }
 

@@ -1,6 +1,6 @@
-import { type MeetingRoomRepository, meetingRepository } from '../repositories/meeting-room.repository';
+import { meetingRepository, type MeetingRoomRepository } from '../repositories/meeting-room.repository';
 import { type MeetingRoomEntity } from '../entities/meeting-room.entity';
-import { type MeetingRoomDto, type ReqQueryMeetingDto } from '../dtos/meeting-room.dto';
+import { type MeetingRoomDto, type MeetingRoomUpdateDto, type ReqQueryMeetingDto } from '../dtos/meeting-room.dto';
 import { toMeetingRoomDto } from '../mappers/meeting-room.mapper';
 import { validateNewMeeting, validateUpdateMeeting } from '../utils/validate-meeting-room.util';
 import createHttpError from 'http-errors';
@@ -35,7 +35,7 @@ export class MeetingRoomService {
         return toMeetingRoomDto(meeting);
     }
 
-    async update (id: string, dto: Partial<MeetingRoomDto>): Promise<MeetingRoomDto> {
+    async update (id: string, dto: MeetingRoomUpdateDto): Promise<MeetingRoomDto> {
         const [existing, all] = await Promise.all([this.meetingRepository.findById(id), this.meetingRepository.findAll()]);
 
         // Validate specific meeting requirements

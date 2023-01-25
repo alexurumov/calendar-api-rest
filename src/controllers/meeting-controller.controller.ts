@@ -53,7 +53,7 @@ export class MeetingControllerController {
     }
 
     async updateById (req: Request<PathParamMeetingDto, {}, MeetingRoomUpdateDto>, res: Response, next: NextFunction): Promise<Response | void> {
-    // Transform request body to MeetingRoomDto Class
+        // Transform request body to MeetingRoomDto Class
         const meetingDto = plainToClass(MeetingRoomUpdateDto, req.body, { excludeExtraneousValues: true });
 
         try {
