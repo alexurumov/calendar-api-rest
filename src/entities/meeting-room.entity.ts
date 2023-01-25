@@ -1,7 +1,7 @@
 import { Types } from 'mongoose';
 import { AutoMap } from '@automapper/classes';
 
-export class MeetingEntity {
+export class MeetingRoomEntity {
     @AutoMap()
         _id!: Types.ObjectId;
 
@@ -9,11 +9,11 @@ export class MeetingEntity {
         name!: string;
 
     @AutoMap()
-        startTime!: Date;
+        startAvailableHours!: Date;
 
     @AutoMap()
-        endTime!: Date;
+        endAvailableHours!: Date;
 
     @AutoMap()
-        room!: string;
+        capacity!: number;
 }

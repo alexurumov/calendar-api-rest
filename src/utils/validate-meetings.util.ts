@@ -1,9 +1,9 @@
 import { validateTimes } from './luxon.util';
-import { type MeetingEntity } from '../entities/meeting.entity';
-import { type MeetingDto } from '../dtos/meeting.dto';
+import { type MeetingRoomEntity } from '../entities/meeting-room.entity';
+import { type MeetingRoomDto } from '../dtos/meeting-room.dto';
 import createHttpError from 'http-errors';
 
-export function validateUpdateMeeting (existing: MeetingEntity | null, dto: Partial<MeetingDto>, all: MeetingEntity[]): void {
+export function validateUpdateMeeting (existing: MeetingRoomEntity | null, dto: Partial<MeetingRoomDto>, all: MeetingRoomEntity[]): void {
     // Does meeting exist?
     if (!existing) {
         throw createHttpError.NotFound('No such Meeting found!');
@@ -20,21 +20,21 @@ export function validateUpdateMeeting (existing: MeetingEntity | null, dto: Part
     }
 
     // Is start time before end time?
-    if (dto.startTime) {
-        if (!validateTimes(dto.startTime, existing.endTime)) {
-            throw createHttpError.BadRequest('Start time must not be after end time!');
+    if (dto.startAvailableHours) {
+        if (!validateTimes(dto.startAvailableHours, existing.endAvailableHours)) {
+            throw createHttpError.BadRequest('Start hours must not be after end hours!');
         }
     }
 
     // Is end date after start date?
-    if (dto.endTime) {
-        if (!validateTimes(existing.startTime, dto.endTime)) {
-            throw createHttpError.BadRequest('End time must not be before start time!');
+    if (dto.endAvailableHours) {
+        if (!validateTimes(existing.startAvailableHours, dto.endAvailableHours)) {
+            throw createHttpError.BadRequest('End hours must not be before start hours!');
         }
     }
 }
 
-export function validateNewMeeting (dto: MeetingDto, all: MeetingEntity[]): void {
+export function validateNewMeeting (dto: MeetingRoomDto, all: MeetingRoomEntity[]): void {
     // Is name unique?
     if (dto.name) {
     // Check if there is a meeting with the same name
@@ -42,7 +42,7 @@ export function validateNewMeeting (dto: MeetingDto, all: MeetingEntity[]): void
             throw createHttpError.Conflict('Name is already taken!');
         }
     }
-    if (!validateTimes(dto.startTime, dto.endTime)) {
-        throw createHttpError.BadRequest('Start time must not be after end time!');
+    if (!validateTimes(dto.startAvailableHours, dto.endAvailableHours)) {
+        throw createHttpError.BadRequest('Start hours must not be after end hours!');
     }
 }

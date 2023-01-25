@@ -1,6 +1,6 @@
 import { type NextFunction, type Request, type Response } from 'express';
 import { type MeetingService, meetingService } from '../services/meeting.service';
-import { MeetingDto, type PathParamMeetingDto, type ReqQueryMeetingDto } from '../dtos/meeting.dto';
+import { MeetingRoomDto, type PathParamMeetingDto, type ReqQueryMeetingDto } from '../dtos/meeting-room.dto';
 import { plainToClass } from 'class-transformer';
 import { validateRequestBody } from '../utils/validate-request.util';
 import createHttpError from 'http-errors';
@@ -19,12 +19,12 @@ export class MeetingController {
         }
     }
 
-    async create (req: Request<{}, {}, MeetingDto>, res: Response, next: NextFunction): Promise<Response | void> {
-    // Transform request body to MeetingDto Class
-        const meetingDto = plainToClass(MeetingDto, req.body, { excludeExtraneousValues: true });
+    async create (req: Request<{}, {}, MeetingRoomDto>, res: Response, next: NextFunction): Promise<Response | void> {
+        // Transform request body to MeetingRoomDto Class
+        const meetingDto = plainToClass(MeetingRoomDto, req.body, { excludeExtraneousValues: true });
 
         try {
-            // Validate MeetingDto
+            // Validate MeetingRoomDto
             await validateRequestBody(meetingDto);
             const created = await this.meetingService.create(meetingDto);
             return res.status(201).json(created);
@@ -47,9 +47,9 @@ export class MeetingController {
         }
     }
 
-    async updateById (req: Request<PathParamMeetingDto, {}, Partial<MeetingDto>>, res: Response, next: NextFunction): Promise<Response | void> {
-    // Transform request body to MeetingDto Class
-        const meetingDto = plainToClass(MeetingDto, req.body, { excludeExtraneousValues: true });
+    async updateById (req: Request<PathParamMeetingDto, {}, Partial<MeetingRoomDto>>, res: Response, next: NextFunction): Promise<Response | void> {
+        // Transform request body to MeetingRoomDto Class
+        const meetingDto = plainToClass(MeetingRoomDto, req.body, { excludeExtraneousValues: true });
 
         try {
             // Validate request params ID
