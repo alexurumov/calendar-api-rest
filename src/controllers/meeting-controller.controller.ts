@@ -1,5 +1,5 @@
 import { type NextFunction, type Request, type Response } from 'express';
-import { type MeetingService, meetingService } from '../services/meeting.service';
+import { type MeetingRoomService, meetingService } from '../services/meeting-room.service';
 import {
     MeetingRoomDto,
     MeetingRoomUpdateDto,
@@ -10,8 +10,8 @@ import { plainToClass } from 'class-transformer';
 import { validateRequestBody } from '../utils/validate-request.util';
 import createHttpError from 'http-errors';
 
-export class MeetingController {
-    constructor (private readonly meetingService: MeetingService) {
+export class MeetingControllerController {
+    constructor (private readonly meetingService: MeetingRoomService) {
     }
 
     async getAll (req: Request<{}, {}, {}, ReqQueryMeetingDto>, res: Response, next: NextFunction): Promise<Response | void> {
@@ -85,4 +85,4 @@ export class MeetingController {
     }
 }
 
-export const meetingController = new MeetingController(meetingService);
+export const meetingController = new MeetingControllerController(meetingService);

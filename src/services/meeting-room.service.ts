@@ -2,10 +2,10 @@ import { type MeetingRoomRepository, meetingRepository } from '../repositories/m
 import { type MeetingRoomEntity } from '../entities/meeting-room.entity';
 import { type MeetingRoomDto, type ReqQueryMeetingDto } from '../dtos/meeting-room.dto';
 import { toMeetingRoomDto } from '../mappers/meeting-room.mapper';
-import { validateNewMeeting, validateUpdateMeeting } from '../utils/validate-meetings.util';
+import { validateNewMeeting, validateUpdateMeeting } from '../utils/validate-meeting-room.util';
 import createHttpError from 'http-errors';
 
-export class MeetingService {
+export class MeetingRoomService {
     constructor (private readonly meetingRepository: MeetingRoomRepository) {}
 
     async getAll (dto: ReqQueryMeetingDto): Promise<MeetingRoomDto[]> {
@@ -56,4 +56,4 @@ export class MeetingService {
         return toMeetingRoomDto(deleted);
     }
 }
-export const meetingService = new MeetingService(meetingRepository);
+export const meetingService = new MeetingRoomService(meetingRepository);

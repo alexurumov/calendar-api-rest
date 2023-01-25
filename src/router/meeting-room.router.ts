@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { meetingController } from '../controllers/meeting.controller';
+import { meetingController } from '../controllers/meeting-controller.controller';
 
 export const router = Router();
 

@@ -24,7 +24,7 @@ const meetingSchema = new Schema<MeetingRoomEntity>({
     }
 });
 
-const meetingModel = model<MeetingRoomEntity>('Meeting', meetingSchema);
+const meetingModel = model<MeetingRoomEntity>('MeetingRoom', meetingSchema);
 
 export class MeetingRoomRepository implements BaseRepository<MeetingRoomEntity, MeetingRoomDto> {
     async create (meetingDto: MeetingRoomDto): Promise<MeetingRoomEntity> {

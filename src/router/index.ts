@@ -1,6 +1,6 @@
 import express from 'express';
 import { router as userRouter } from './user.router';
-import { router as meetingRouter } from './meeting.router';
+import { router as meetingRouter } from './meeting-room.router';
 import { auth } from '../middlewares/auth.middleware';
 import { handleErrors } from '../middlewares/error-handler.middleware';
 
