@@ -6,7 +6,7 @@ export function handleErrors (err: Error, req: Request, res: Response, next: Nex
         console.error(err);
 
         if (err instanceof HttpError) {
-            return res.status(err.status).json(err.message);
+            return res.status(err.status).json(err.message.trim());
         }
         return res.status(500).json('Oops! Something happened...');
     }

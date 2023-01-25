@@ -1,8 +1,8 @@
 import { model, Schema } from 'mongoose';
 import { type BaseRepository } from './base.repository';
 import { type UserEntity } from '../entities/user.entity';
-import { type UserDto } from '../dtos/user.dto';
-import { toUserEntity } from '../mappers/user.mapper';
+import { type UserRegisterDto } from '../dtos/user.dto';
+import { toUserRegisterEntity } from '../mappers/user.mapper';
 
 const userSchema = new Schema<UserEntity>({
     username: {
@@ -18,9 +18,9 @@ const userSchema = new Schema<UserEntity>({
 
 const userModel = model<UserEntity>('User', userSchema);
 
-export class UserRepository implements BaseRepository<UserEntity, UserDto> {
-    async create (userData: UserDto): Promise<UserEntity> {
-        const entity: UserEntity = toUserEntity(userData);
+export class UserRepository implements BaseRepository<UserEntity, UserRegisterDto> {
+    async create (userData: UserRegisterDto): Promise<UserEntity> {
+        const entity: UserEntity = toUserRegisterEntity(userData);
         return await userModel.create(entity);
     }
 
@@ -38,11 +38,11 @@ export class UserRepository implements BaseRepository<UserEntity, UserDto> {
         return await userModel.findOne({ username });
     }
 
-    async findAllByUsername<ParamDto extends Pick<UserDto, 'username'>>(params: Required<ParamDto>): Promise<UserEntity[]> {
+    async findAllByUsername<ParamDto extends Pick<UserRegisterDto, 'username'>>(params: Required<ParamDto>): Promise<UserEntity[]> {
         return await userModel.find({ name: params.username }).exec();
     }
 
-    async updateById (id: string, dto: Partial<UserDto>): Promise<UserEntity | null> {
+    async updateById (id: string, dto: Partial<UserRegisterDto>): Promise<UserEntity | null> {
         return await userModel.findByIdAndUpdate(id, dto);
     }
 
