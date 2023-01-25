@@ -1,6 +1,6 @@
 import { AutoMap } from '@automapper/classes';
 import { Expose } from 'class-transformer';
-import { IsInt, IsNotEmpty, Min } from 'class-validator';
+import { IsInt, IsMilitaryTime, IsNotEmpty, IsOptional, Min } from 'class-validator';
 
 export class MeetingRoomDto {
     @AutoMap()
@@ -11,15 +11,17 @@ export class MeetingRoomDto {
     @AutoMap()
         name!: string;
 
+    @IsMilitaryTime({ message: 'Meeting start available hours must be in format: HH:MM' })
     @IsNotEmpty({ message: 'Meeting start available hours is required!' })
     @Expose()
     @AutoMap()
-        startAvailableHours!: Date;
+        startAvailableHours!: string;
 
+    @IsMilitaryTime({ message: 'Meeting end available hours must be in format: HH:MM' })
     @IsNotEmpty({ message: 'Meeting end available hours is required!' })
     @Expose()
     @AutoMap()
-        endAvailableHours!: Date;
+        endAvailableHours!: string;
 
     @IsInt({ message: 'Meeting capacity must be an integer number!' })
     @Min(1, { message: 'Meeting capacity must be at least 1!' })
@@ -27,6 +29,34 @@ export class MeetingRoomDto {
     @Expose()
     @AutoMap()
         capacity!: number;
+}
+export class MeetingRoomUpdateDto {
+    @AutoMap()
+        _id?: string;
+
+    @IsOptional()
+    @Expose()
+    @AutoMap()
+        name?: string;
+
+    @IsMilitaryTime({ message: 'Meeting start available hours must be in format: HH:MM' })
+    @IsOptional()
+    @Expose()
+    @AutoMap()
+        startAvailableHours?: string;
+
+    @IsMilitaryTime({ message: 'Meeting end available hours must be in format: HH:MM' })
+    @IsOptional()
+    @Expose()
+    @AutoMap()
+        endAvailableHours?: string;
+
+    @IsInt({ message: 'Meeting capacity must be an integer number!' })
+    @Min(1, { message: 'Meeting capacity must be at least 1!' })
+    @IsOptional()
+    @Expose()
+    @AutoMap()
+        capacity?: number;
 }
 
 export type ReqQueryMeetingDto = Partial<MeetingRoomDto>;

@@ -11,11 +11,11 @@ const meetingSchema = new Schema<MeetingRoomEntity>({
         unique: true
     },
     startAvailableHours: {
-        type: Date,
+        type: String,
         required: true
     },
     endAvailableHours: {
-        type: Date,
+        type: String,
         required: true
     },
     capacity: {

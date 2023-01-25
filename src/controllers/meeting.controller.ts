@@ -1,6 +1,11 @@
 import { type NextFunction, type Request, type Response } from 'express';
 import { type MeetingService, meetingService } from '../services/meeting.service';
-import { MeetingRoomDto, type PathParamMeetingDto, type ReqQueryMeetingDto } from '../dtos/meeting-room.dto';
+import {
+    MeetingRoomDto,
+    MeetingRoomUpdateDto,
+    type PathParamMeetingDto,
+    type ReqQueryMeetingDto
+} from '../dtos/meeting-room.dto';
 import { plainToClass } from 'class-transformer';
 import { validateRequestBody } from '../utils/validate-request.util';
 import createHttpError from 'http-errors';
@@ -20,7 +25,7 @@ export class MeetingController {
     }
 
     async create (req: Request<{}, {}, MeetingRoomDto>, res: Response, next: NextFunction): Promise<Response | void> {
-        // Transform request body to MeetingRoomDto Class
+    // Transform request body to MeetingRoomDto Class
         const meetingDto = plainToClass(MeetingRoomDto, req.body, { excludeExtraneousValues: true });
 
         try {
@@ -47,9 +52,9 @@ export class MeetingController {
         }
     }
 
-    async updateById (req: Request<PathParamMeetingDto, {}, Partial<MeetingRoomDto>>, res: Response, next: NextFunction): Promise<Response | void> {
-        // Transform request body to MeetingRoomDto Class
-        const meetingDto = plainToClass(MeetingRoomDto, req.body, { excludeExtraneousValues: true });
+    async updateById (req: Request<PathParamMeetingDto, {}, MeetingRoomUpdateDto>, res: Response, next: NextFunction): Promise<Response | void> {
+    // Transform request body to MeetingRoomDto Class
+        const meetingDto = plainToClass(MeetingRoomUpdateDto, req.body, { excludeExtraneousValues: true });
 
         try {
             // Validate request params ID
@@ -57,6 +62,7 @@ export class MeetingController {
             if (!id) {
                 throw createHttpError.BadRequest('Meeting ID missing!');
             }
+            await validateRequestBody(meetingDto);
             const updated = await this.meetingService.update(id, meetingDto);
             return res.status(200).json(updated);
         } catch (err: unknown) {

@@ -20,7 +20,7 @@ export class MeetingService {
     }
 
     async create (dto: MeetingRoomDto): Promise<MeetingRoomDto> {
-    // Validate Specific Meeting requirements!
+        // Validate Specific Meeting requirements!
         const all = await this.meetingRepository.findAll();
         validateNewMeeting(dto, all);
         const created = await this.meetingRepository.create(dto);

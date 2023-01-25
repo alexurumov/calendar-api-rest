@@ -9,10 +9,10 @@ export class MeetingRoomEntity {
         name!: string;
 
     @AutoMap()
-        startAvailableHours!: Date;
+        startAvailableHours!: string;
 
     @AutoMap()
-        endAvailableHours!: Date;
+        endAvailableHours!: string;
 
     @AutoMap()
         capacity!: number;
