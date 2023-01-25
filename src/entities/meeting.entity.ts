@@ -1,19 +1,19 @@
-import { Types } from 'mongoose'
-import { AutoMap } from '@automapper/classes'
+import { Types } from 'mongoose';
+import { AutoMap } from '@automapper/classes';
 
 export class MeetingEntity {
-  @AutoMap()
-    _id!: Types.ObjectId
+    @AutoMap()
+        _id!: Types.ObjectId;
 
-  @AutoMap()
-    name!: string
+    @AutoMap()
+        name!: string;
 
-  @AutoMap()
-    startTime!: Date
+    @AutoMap()
+        startTime!: Date;
 
-  @AutoMap()
-    endTime!: Date
+    @AutoMap()
+        endTime!: Date;
 
-  @AutoMap()
-    room!: string
+    @AutoMap()
+        room!: string;
 }
