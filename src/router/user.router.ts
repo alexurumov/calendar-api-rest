@@ -7,3 +7,4 @@ export const router = Router();
 router.post('/register', async (req, res, next) => { await userController.register(req, res, next); }, createToken);
 router.post('/login', async (req, res, next) => { await userController.login(req, res, next); }, createToken);
 router.get('/logout', (req, res) => userController.logout(req, res));
+router.get('/', async (req, res, next) => { await userController.getAll(req, res, next); });

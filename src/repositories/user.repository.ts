@@ -13,6 +13,18 @@ const userSchema = new Schema<UserEntity>({
     password: {
         type: String,
         required: true
+    },
+    name: {
+        type: String
+    },
+    age: {
+        type: Number
+    },
+    phone: {
+        type: String
+    },
+    company: {
+        type: String
     }
 });
 
@@ -24,13 +36,11 @@ export class UserRepository implements BaseRepository<UserEntity, UserRegisterDt
         return await userModel.create(entity);
     }
 
-    async findAll (): Promise<UserEntity[] | undefined> {
+    async findAll (): Promise<UserEntity[]> {
         return await userModel.find();
     }
 
     async findById (id: string): Promise<UserEntity | null> {
-    // Population strategy successful!
-    // const entity = await userModel.findById(id).populate<{ tests: TestEntity[] }>('tests');
         return await userModel.findById(id);
     }
 
@@ -38,8 +48,8 @@ export class UserRepository implements BaseRepository<UserEntity, UserRegisterDt
         return await userModel.findOne({ username });
     }
 
-    async findAllByUsername<ParamDto extends Pick<UserRegisterDto, 'username'>>(params: Required<ParamDto>): Promise<UserEntity[]> {
-        return await userModel.find({ name: params.username }).exec();
+    async findAllByCompany<ParamDto extends Pick<UserRegisterDto, 'company'>>(params: Required<ParamDto>): Promise<UserEntity[]> {
+        return await userModel.find({ name: params.company }).exec();
     }
 
     async updateById (id: string, dto: Partial<UserRegisterDto>): Promise<UserEntity | null> {

@@ -10,4 +10,16 @@ export class UserEntity {
 
     @AutoMap()
         password!: string;
+
+    @AutoMap()
+        name?: string;
+
+    @AutoMap()
+        age?: number;
+
+    @AutoMap()
+        phone?: string;
+
+    @AutoMap()
+        company?: string;
 }

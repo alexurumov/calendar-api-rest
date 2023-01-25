@@ -1,14 +1,14 @@
 import { type UserRepository, userRepository } from '../repositories/user.repository';
-import { type UserLoginDto, type UserRegisterDto } from '../dtos/user.dto';
-import { toUserLoginDto, toUserRegisterDto } from '../mappers/user.mapper';
+import { type ReqQueryUserDto, type UserDto, type UserRegisterDto } from '../dtos/user.dto';
+import { toUserDto } from '../mappers/user.mapper';
 import { toHash, verifyHash } from '../utils/bcrypt.util';
 import createHttpError from 'http-errors';
+import { type UserEntity } from '../entities/user.entity';
 
 export class UserService {
-    constructor (private readonly userRepository: UserRepository) {
-    }
+    constructor (private readonly userRepository: UserRepository) {}
 
-    async register (dto: UserRegisterDto): Promise<UserRegisterDto> {
+    async register (dto: UserRegisterDto): Promise<UserDto> {
         const { username, password, confirmPassword } = dto;
 
         // Check if passwords match!
@@ -24,10 +24,10 @@ export class UserService {
 
         dto.password = await toHash(password);
         const entity = await this.userRepository.create(dto);
-        return toUserRegisterDto(entity);
+        return toUserDto(entity);
     }
 
-    async login (dto: UserLoginDto): Promise<UserLoginDto> {
+    async login (dto: UserDto): Promise<UserDto> {
         const { username, password } = dto;
 
         // Check if user with such username exists in DB
@@ -41,7 +41,18 @@ export class UserService {
         if (!passMatch) {
             throw createHttpError.BadRequest('Invalid login credentials!');
         }
-        return toUserLoginDto(userEntity);
+        return toUserDto(userEntity);
+    }
+
+    async getAll (dto: ReqQueryUserDto): Promise<UserDto[]> {
+        const { company } = dto;
+        let users: UserEntity[];
+        if (company !== undefined) {
+            users = await this.userRepository.findAllByCompany({ company });
+        } else {
+            users = await this.userRepository.findAll();
+        }
+        return users.map(toUserDto);
     }
 }
 
