@@ -3,10 +3,10 @@ import { type MeetingRoomEntity } from '../entities/meeting-room.entity';
 import { type MeetingRoomDto, type MeetingRoomUpdateDto } from '../dtos/meeting-room.dto';
 import createHttpError from 'http-errors';
 
-export function validateUpdateMeeting (existing: MeetingRoomEntity | null, dto: MeetingRoomUpdateDto, all: MeetingRoomEntity[]): void {
+export function validateUpdateMeetingRoom (existing: MeetingRoomEntity | null, dto: MeetingRoomUpdateDto, all: MeetingRoomEntity[]): void {
     // Does meeting exist?
     if (!existing) {
-        throw createHttpError.NotFound('No such Meeting found!');
+        throw createHttpError.NotFound('No such Meeting room found!');
     }
 
     // Is name unique?
@@ -34,7 +34,7 @@ export function validateUpdateMeeting (existing: MeetingRoomEntity | null, dto: 
     }
 }
 
-export function validateNewMeeting (dto: MeetingRoomDto, all: MeetingRoomEntity[]): void {
+export function validateNewMeetingRoom (dto: MeetingRoomDto, all: MeetingRoomEntity[]): void {
     // Is name unique?
     if (dto.name) {
     // Check if there is a meeting with the same name

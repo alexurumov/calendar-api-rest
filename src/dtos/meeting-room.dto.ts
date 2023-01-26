@@ -59,6 +59,6 @@ export class MeetingRoomUpdateDto {
         capacity?: number;
 }
 
-export type ReqQueryMeetingDto = Partial<MeetingRoomDto>;
+export type ReqQueryMeetingRoomDto = Partial<MeetingRoomDto>;
 
-export type PathParamMeetingDto = Required<Pick<MeetingRoomDto, '_id'>>;
+export type PathParamMeetingRoomDto = Required<Pick<MeetingRoomDto, '_id'>>;

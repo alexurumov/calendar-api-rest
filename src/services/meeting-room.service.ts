@@ -1,34 +1,34 @@
-import { meetingRepository, type MeetingRoomRepository } from '../repositories/meeting-room.repository';
+import { type MeetingRoomRepository, meetingRoomRepository } from '../repositories/meeting-room.repository';
 import { type MeetingRoomEntity } from '../entities/meeting-room.entity';
-import { type MeetingRoomDto, type MeetingRoomUpdateDto, type ReqQueryMeetingDto } from '../dtos/meeting-room.dto';
+import { type MeetingRoomDto, type MeetingRoomUpdateDto, type ReqQueryMeetingRoomDto } from '../dtos/meeting-room.dto';
 import { toMeetingRoomDto } from '../mappers/meeting-room.mapper';
-import { validateNewMeeting, validateUpdateMeeting } from '../utils/validate-meeting-room.util';
+import { validateNewMeetingRoom, validateUpdateMeetingRoom } from '../utils/validate-meeting-room.util';
 import createHttpError from 'http-errors';
 
 export class MeetingRoomService {
-    constructor (private readonly meetingRepository: MeetingRoomRepository) {}
+    constructor (private readonly meetingRoomRepository: MeetingRoomRepository) {}
 
-    async getAll (dto: ReqQueryMeetingDto): Promise<MeetingRoomDto[]> {
+    async getAll (dto: ReqQueryMeetingRoomDto): Promise<MeetingRoomDto[]> {
         const { name } = dto;
         let meetings: MeetingRoomEntity[];
         if (name !== undefined) {
-            meetings = await this.meetingRepository.findAllByName({ name });
+            meetings = await this.meetingRoomRepository.findAllByName({ name });
         } else {
-            meetings = await this.meetingRepository.findAll();
+            meetings = await this.meetingRoomRepository.findAll();
         }
         return meetings.map(toMeetingRoomDto);
     }
 
     async create (dto: MeetingRoomDto): Promise<MeetingRoomDto> {
-        // Validate Specific Meeting requirements!
-        const all = await this.meetingRepository.findAll();
-        validateNewMeeting(dto, all);
-        const created = await this.meetingRepository.create(dto);
+        // Validate Specific Meeting Room requirements!
+        const all = await this.meetingRoomRepository.findAll();
+        validateNewMeetingRoom(dto, all);
+        const created = await this.meetingRoomRepository.create(dto);
         return toMeetingRoomDto(created);
     }
 
     async findById (id: string): Promise<MeetingRoomDto> {
-        const meeting = await this.meetingRepository.findById(id);
+        const meeting = await this.meetingRoomRepository.findById(id);
         if (meeting == null) {
             throw createHttpError.NotFound('No such Meeting found!');
         }
@@ -36,12 +36,12 @@ export class MeetingRoomService {
     }
 
     async update (id: string, dto: MeetingRoomUpdateDto): Promise<MeetingRoomDto> {
-        const [existing, all] = await Promise.all([this.meetingRepository.findById(id), this.meetingRepository.findAll()]);
+        const [existing, all] = await Promise.all([this.meetingRoomRepository.findById(id), this.meetingRoomRepository.findAll()]);
 
-        // Validate specific meeting requirements
-        validateUpdateMeeting(existing, dto, all);
+        // Validate specific Meeting Room requirements
+        validateUpdateMeetingRoom(existing, dto, all);
 
-        const updated = await this.meetingRepository.updateById(id, dto);
+        const updated = await this.meetingRoomRepository.updateById(id, dto);
         if (updated == null) {
             throw createHttpError.BadRequest('Invalid input!');
         }
@@ -49,11 +49,11 @@ export class MeetingRoomService {
     }
 
     async delete (id: string): Promise<MeetingRoomDto> {
-        const deleted = await this.meetingRepository.delete(id);
+        const deleted = await this.meetingRoomRepository.delete(id);
         if (deleted == null) {
             throw createHttpError.NotFound('No such Meeting!');
         }
         return toMeetingRoomDto(deleted);
     }
 }
-export const meetingService = new MeetingRoomService(meetingRepository);
+export const meetingRoomService = new MeetingRoomService(meetingRoomRepository);

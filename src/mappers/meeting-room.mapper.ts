@@ -12,7 +12,7 @@ createMap(
     MeetingRoomDto,
     typeConverter(Types.ObjectId, String, (objectId) => objectId.toString())
 );
-createMap<MeetingRoomDto, MeetingRoomEntity>(
+createMap(
     mapper,
     MeetingRoomDto,
     MeetingRoomEntity
