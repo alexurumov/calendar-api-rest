@@ -11,8 +11,8 @@ const meetingSchema = new Schema<MeetingEntity>({
             required: true
         },
         answered: {
-            type: String
-            // required: true
+            type: String,
+            required: true
         }
     },
     meeting_room: {
@@ -28,13 +28,14 @@ const meetingSchema = new Schema<MeetingEntity>({
         required: true
     },
     participants: [{
+        _id: false,
         username: {
-            type: String
-            // required: true
+            type: String,
+            required: true
         },
         answered: {
-            type: String
-            // required: true
+            type: String,
+            required: true
         }
     }]
 });

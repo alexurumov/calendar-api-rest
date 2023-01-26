@@ -17,6 +17,5 @@ export class MeetingEntity {
     @AutoMap()
         end_time!: Date;
 
-    @AutoMap()
-        participants?: Participant[];
+    participants?: Participant[];
 }
