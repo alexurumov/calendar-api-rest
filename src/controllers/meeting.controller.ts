@@ -28,7 +28,7 @@ export class MeetingController {
         try {
             // Validate MeetingDto
             await validateRequestBody(meetingDto);
-            const createdMeeting = await this.meetingService.create(meetingDto);
+            const createdMeeting = await this.meetingManager.create(meetingDto);
             return res.status(201).json(createdMeeting);
         } catch (err: unknown) {
             next(err);

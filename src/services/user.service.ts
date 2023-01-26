@@ -68,6 +68,14 @@ export class UserService {
         }
         return toUserDto(updated);
     }
+
+    async findByUsername (username: string): Promise<UserDto> {
+        const found = await this.userRepository.findByUsername(username);
+        if (!found) {
+            throw createHttpError.NotFound('No such user found!');
+        }
+        return toUserDto(found);
+    }
 }
 
 export const userService = new UserService(userRepository);

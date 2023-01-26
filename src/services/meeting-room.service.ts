@@ -1,6 +1,5 @@
 import { type MeetingRoomRepository, meetingRoomRepository } from '../repositories/meeting-room.repository';
-import { type MeetingRoomEntity } from '../entities/meeting-room.entity';
-import { type MeetingRoomDto, type MeetingRoomUpdateDto, type ReqQueryMeetingRoomDto } from '../dtos/meeting-room.dto';
+import { type MeetingRoomDto, type MeetingRoomUpdateDto } from '../dtos/meeting-room.dto';
 import { toMeetingRoomDto } from '../mappers/meeting-room.mapper';
 import { validateNewMeetingRoom, validateUpdateMeetingRoom } from '../utils/validate-meeting-room.util';
 import createHttpError from 'http-errors';
@@ -8,14 +7,8 @@ import createHttpError from 'http-errors';
 export class MeetingRoomService {
     constructor (private readonly meetingRoomRepository: MeetingRoomRepository) {}
 
-    async getAll (dto: ReqQueryMeetingRoomDto): Promise<MeetingRoomDto[]> {
-        const { name } = dto;
-        let meetings: MeetingRoomEntity[];
-        if (name !== undefined) {
-            meetings = await this.meetingRoomRepository.findAllByName({ name });
-        } else {
-            meetings = await this.meetingRoomRepository.findAll();
-        }
+    async getAll (): Promise<MeetingRoomDto[]> {
+        const meetings = await this.meetingRoomRepository.findAll();
         return meetings.map(toMeetingRoomDto);
     }
 
@@ -54,6 +47,14 @@ export class MeetingRoomService {
             throw createHttpError.NotFound('No such Meeting!');
         }
         return toMeetingRoomDto(deleted);
+    }
+
+    async findByName (name: string): Promise<MeetingRoomDto> {
+        const meeting = await this.meetingRoomRepository.findByName(name);
+        if (!meeting) {
+            throw createHttpError.NotFound('No such Meeting found!');
+        }
+        return toMeetingRoomDto(meeting);
     }
 }
 export const meetingRoomService = new MeetingRoomService(meetingRoomRepository);

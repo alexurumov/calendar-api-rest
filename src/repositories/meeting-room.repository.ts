@@ -43,8 +43,12 @@ export class MeetingRoomRepository implements BaseRepository<MeetingRoomEntity, 
         return await meetingRoomModel.findById(id);
     }
 
-    async findAllByName<ParamDto extends Pick<MeetingRoomDto, 'name'>>(params: Required<ParamDto>): Promise<MeetingRoomEntity[]> {
-        return await meetingRoomModel.find({ name: params.name }).exec();
+    // async findAllByName<ParamDto extends Pick<MeetingRoomDto, 'name'>>(params: Required<ParamDto>): Promise<MeetingRoomEntity[]> {
+    //     return await meetingRoomModel.find({ name: params.name }).exec();
+    // }
+
+    async findByName (name: string): Promise<MeetingRoomEntity | null> {
+        return await meetingRoomModel.findOne({ name });
     }
 
     async updateById (id: string, dto: MeetingRoomUpdateDto): Promise<MeetingRoomEntity | null> {
