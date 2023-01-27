@@ -17,7 +17,6 @@ export class UserController {
     async register (req: Request<{}, {}, UserRegisterDto>, res: Response, next: NextFunction): Promise<void> {
         // Transform req.body to RegisterUserDto
         const userRegisterDto = plainToClass(UserRegisterDto, req.body, { excludeExtraneousValues: true });
-
         try {
             // Validate RegisterUserDto
             await validateRequestBody(userRegisterDto);

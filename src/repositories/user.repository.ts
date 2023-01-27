@@ -25,6 +25,16 @@ const userSchema = new Schema<UserEntity>({
     },
     company: {
         type: String
+    },
+    meetings: {
+        type: Map,
+        of: [{
+            _id: false,
+            meeting_id: String,
+            answered: String
+        }],
+        default: {},
+        required: true
     }
 });
 

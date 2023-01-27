@@ -1,6 +1,7 @@
 import { AutoMap } from '@automapper/classes';
 import { IsInt, IsNotEmpty, IsOptional, IsPhoneNumber, Max, MaxLength, Min, MinLength } from 'class-validator';
 import { Expose } from 'class-transformer';
+import { type UserMeeting } from '../entities/user.entity';
 
 abstract class BaseUserDto {
     @AutoMap()
@@ -31,6 +32,9 @@ abstract class BaseUserDto {
     @Expose()
     @AutoMap()
         company?: string;
+
+    @Expose()
+        meetings?: Record<string, UserMeeting[]>;
 }
 
 export class UserDto extends BaseUserDto {
@@ -54,6 +58,9 @@ export class UserRegisterDto extends UserDto {
     @Expose()
     @AutoMap()
         confirmPassword!: string;
+
+    @AutoMap()
+        meetings!: Record<string, UserMeeting[]>;
 }
 
 export class UserUpdateDto extends BaseUserDto {

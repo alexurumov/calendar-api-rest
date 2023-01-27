@@ -1,6 +1,6 @@
 import { type UserRepository, userRepository } from '../repositories/user.repository';
 import { type ReqQueryUserDto, type UserDto, type UserRegisterDto, type UserUpdateDto } from '../dtos/user.dto';
-import { toUserDto } from '../mappers/user.mapper';
+import { toUserDto, toUserRegisterDto } from '../mappers/user.mapper';
 import { toHash, verifyHash } from '../utils/bcrypt.util';
 import createHttpError from 'http-errors';
 import { type UserEntity } from '../entities/user.entity';
@@ -25,7 +25,7 @@ export class UserService {
 
         dto.password = await toHash(password);
         const entity = await this.userRepository.create(dto);
-        return toUserDto(entity);
+        return toUserRegisterDto(entity);
     }
 
     async login (dto: UserDto): Promise<UserDto> {
