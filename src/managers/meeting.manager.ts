@@ -21,8 +21,9 @@ export class MeetingManager {
         - Existing?
         - Has conflict meetings in same hour? TODO: add meetings to users!
          */
-        // const creator = await this.userService.findByUsername(meetingDto.creator);
-        //
+        // Existing?
+        await this.userService.findById(meetingDto.creator);
+
         // const meetingStart = DateTime.fromJSDate(new Date(meetingDto.start_time));
         // const meetingEnd = DateTime.fromJSDate(new Date(meetingDto.end_time));
         // const meetingInterval = Interval.fromDateTimes(meetingStart, meetingEnd);
@@ -35,7 +36,7 @@ export class MeetingManager {
         const room = await this.meetingRoomService.findByName(meetingDto.meeting_room);
 
         // Capacity?
-        if (meetingDto.participants?.length && meetingDto.participants.length > room.capacity) {
+        if (meetingDto.participants?.length && meetingDto.participants.length > room.capacity - 1) {
             throw createHttpError.Conflict('Meeting room capacity exceeded!');
         }
 
@@ -65,7 +66,7 @@ export class MeetingManager {
         }
 
         // Meeting should be within the same day!
-        if (start.startOf('day') !== end.startOf('day')) {
+        if (start.startOf('day').toMillis() !== end.startOf('day').toMillis()) {
             throw createHttpError.Conflict('Meeting should be limited within a single day!');
         }
 

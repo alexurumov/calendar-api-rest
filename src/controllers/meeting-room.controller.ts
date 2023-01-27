@@ -3,8 +3,7 @@ import { type MeetingRoomService, meetingRoomService } from '../services/meeting
 import {
     MeetingRoomDto,
     MeetingRoomUpdateDto,
-    type PathParamMeetingRoomDto,
-    type ReqQueryMeetingRoomDto
+    type PathParamMeetingRoomDto
 } from '../dtos/meeting-room.dto';
 import { plainToClass } from 'class-transformer';
 import { validateRequestBody } from '../utils/validate-request.util';
@@ -14,10 +13,9 @@ export class MeetingRoomController {
     constructor (private readonly meetingRoomService: MeetingRoomService) {
     }
 
-    async getAll (req: Request<{}, {}, {}, ReqQueryMeetingRoomDto>, res: Response, next: NextFunction): Promise<Response | void> {
+    async getAll (req: Request<{}, {}, {}>, res: Response, next: NextFunction): Promise<Response | void> {
         try {
-            const dto: ReqQueryMeetingRoomDto = req.query;
-            const rooms = await this.meetingRoomService.getAll(dto);
+            const rooms = await this.meetingRoomService.getAll();
             return res.status(200).json(rooms);
         } catch (err: unknown) {
             next(err);

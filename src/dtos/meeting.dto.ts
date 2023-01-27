@@ -22,9 +22,7 @@ export class MeetingDto {
     @AutoMap()
         _id?: string;
 
-    @IsNotEmpty({ message: 'Meeting creator is required!' })
-    @Expose()
-        creator!: string;
+    creator!: string;
 
     @IsNotEmpty({ message: 'Meeting room is required!' })
     @Expose()

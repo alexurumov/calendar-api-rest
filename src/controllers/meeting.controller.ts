@@ -26,8 +26,13 @@ export class MeetingController {
         const meetingDto = plainToClass(MeetingDto, req.body, { excludeExtraneousValues: true });
 
         try {
+            const userId = req.user?._id;
+            if (!userId) {
+                throw createHttpError.Unauthorized('You must log in to create a meeting!');
+            }
             // Validate MeetingDto
             await validateRequestBody(meetingDto);
+            meetingDto.creator = userId;
             const createdMeeting = await this.meetingManager.create(meetingDto);
             return res.status(201).json(createdMeeting);
         } catch (err: unknown) {

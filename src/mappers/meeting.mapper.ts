@@ -1,20 +1,18 @@
-import { type Converter, convertUsing, createMap, createMapper, forMember, mapFrom, typeConverter } from '@automapper/core';
+import {
+    type Converter,
+    convertUsing,
+    createMap,
+    createMapper,
+    forMember,
+    mapFrom,
+    typeConverter
+} from '@automapper/core';
 import { classes } from '@automapper/classes';
 import { Types } from 'mongoose';
 import { MeetingEntity } from '../entities/meeting.entity';
-import { Creator, MeetingDto, Participant } from '../dtos/meeting.dto';
+import { MeetingDto, Participant } from '../dtos/meeting.dto';
 
 const mapper = createMapper({ strategyInitializer: classes() });
-
-// TODO: Implement nested objects mapping
-
-const creatorConverter: Converter<string, Object> = {
-    convert (source: string): Object {
-        const creator = new Creator();
-        creator.username = source;
-        return creator;
-    }
-};
 
 const participantsConverter: Converter<string[], Object[]> = {
     convert (source: string[]): Object[] {
@@ -44,10 +42,6 @@ createMap(
     mapper,
     MeetingDto,
     MeetingEntity,
-    forMember(
-        (entity) => entity.creator,
-        convertUsing(creatorConverter, (dto) => dto.creator)
-    ),
     forMember(
         (entity) => entity.participants,
         convertUsing(participantsConverter, (dto) => dto.participants)
