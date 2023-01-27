@@ -54,6 +54,7 @@ export class MeetingController {
         }
     }
 
+    // TODO: update + delete
     // async updateById (req: Request<PathParamMeetingDto, {}, MeetingUpdateDto>, res: Response, next: NextFunction): Promise<Response | void> {
     //     // Transform request body to MeetingDto Class
     //     const meetingDto = plainToClass(MeetingUpdateDto, req.body, { excludeExtraneousValues: true });
