@@ -7,7 +7,7 @@ import { plainToInstance } from 'class-transformer';
 dotenv.config();
 
 export const createToken = (req: Request, res: Response): Response => {
-    const created = plainToInstance(UserDto, res.locals.created);
+    const created = plainToInstance(UserDto, res.locals.created, { enableCircularCheck: true });
     JWTCreateToken<UserDto>(res, created);
     return res.status(201).json(created);
 };

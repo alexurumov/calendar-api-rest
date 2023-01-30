@@ -22,10 +22,6 @@ export class MeetingManager {
         const creator = await this.userService.findById(meetingDto.creator);
         meetingDto.creator = creator.username;
 
-        // const meetingStart = DateTime.fromJSDate(new Date(meetingDto.start_time));
-        // const meetingEnd = DateTime.fromJSDate(new Date(meetingDto.end_time));
-        // const meetingInterval = Interval.fromDateTimes(meetingStart, meetingEnd);
-
         /*
         Validate Meeting Room:
          */
