@@ -21,7 +21,7 @@ export class MeetingManager {
         /*
         Validate Creator:
         - Existing?
-        - Has conflict meetings in same hour? TODO: add meetings to users!
+        - Has conflict meetings in same hour?
          */
         // Existing?
         const creator = await this.userService.findById(meetingDto.creator);
@@ -94,7 +94,7 @@ export class MeetingManager {
             }
         }
 
-        // TODO: Check for conflict meetings in Creator!
+        // Check for conflict meetings in Creator!
         for (const meetingKey in creator.meetings) {
             // Validate repeated meetings
             if (Object.keys(Repeated).map((key) => key.toLocaleLowerCase()).includes(meetingKey)) {
@@ -104,6 +104,7 @@ export class MeetingManager {
                 const userMeetings = creator.meetings[meetingKey];
                 for (const userMeeting of userMeetings) {
                     const meeting = await this.meetingService.findById(userMeeting.meeting_id);
+                    // TODO: Check conflicts in repeated more carefully!
                     if (meetingsInConflict(meetingDto, meeting)) {
                         throw createHttpError.Conflict('Meeting must not be in conflict with creator existing meetings!');
                     }
@@ -126,7 +127,7 @@ export class MeetingManager {
         // Create the meeting!
         const createdMeeting = await this.meetingService.create(meetingDto);
 
-        // TODO: Add meeting to creator
+        // Add meeting to creator
         const newUserMeeting = new UserMeeting();
         // Only to satisfy null-check!
         if (createdMeeting._id) {
@@ -145,7 +146,21 @@ export class MeetingManager {
             await this.userService.update(creator._id, creator);
         }
 
-        // TODO: Add meeting to participants
+        // Add meeting to participants
+        // Reuse already created User Meeting
+        newUserMeeting.answered = Answered.Pending;
+        if (meetingDto.participants) {
+            for (const participantUsername of meetingDto.participants) {
+                const participant = await this.userService.findByUsername(participantUsername);
+                if (!Object.keys(participant.meetings as Object).includes(meetingKey)) {
+                    participant.meetings[meetingKey] = new Array<UserMeeting>();
+                }
+                participant.meetings[meetingKey].push(newUserMeeting);
+                if (participant._id) {
+                    await this.userService.update(participant._id, participant);
+                }
+            }
+        }
 
         return createdMeeting;
     }
