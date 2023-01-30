@@ -23,7 +23,7 @@ export class MeetingRoomService {
     async findById (id: string): Promise<MeetingRoomDto> {
         const meeting = await this.meetingRoomRepository.findById(id);
         if (meeting == null) {
-            throw createHttpError.NotFound('No such Meeting found!');
+            throw createHttpError.NotFound('No such Meeting room found!');
         }
         return toMeetingRoomDto(meeting);
     }
@@ -44,7 +44,7 @@ export class MeetingRoomService {
     async delete (id: string): Promise<MeetingRoomDto> {
         const deleted = await this.meetingRoomRepository.delete(id);
         if (deleted == null) {
-            throw createHttpError.NotFound('No such Meeting!');
+            throw createHttpError.NotFound('No such Meeting room found!');
         }
         return toMeetingRoomDto(deleted);
     }
@@ -52,7 +52,7 @@ export class MeetingRoomService {
     async findByName (name: string): Promise<MeetingRoomDto> {
         const meeting = await this.meetingRoomRepository.findByName(name);
         if (!meeting) {
-            throw createHttpError.NotFound('No such Meeting found!');
+            throw createHttpError.NotFound('No such Meeting room found!');
         }
         return toMeetingRoomDto(meeting);
     }

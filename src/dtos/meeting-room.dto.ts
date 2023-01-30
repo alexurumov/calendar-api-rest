@@ -6,26 +6,26 @@ export class MeetingRoomDto {
     @AutoMap()
         _id?: string;
 
-    @IsNotEmpty({ message: 'Meeting name is required!' })
+    @IsNotEmpty({ message: 'Meeting room name is required!' })
     @Expose()
     @AutoMap()
         name!: string;
 
-    @IsMilitaryTime({ message: 'Meeting start available hours must be in format: HH:MM' })
-    @IsNotEmpty({ message: 'Meeting start available hours is required!' })
+    @IsMilitaryTime({ message: 'Meeting room start available hours must be in format: HH:MM' })
+    @IsNotEmpty({ message: 'Meeting room start available hours is required!' })
     @Expose()
     @AutoMap()
         startAvailableHours!: string;
 
-    @IsMilitaryTime({ message: 'Meeting end available hours must be in format: HH:MM' })
-    @IsNotEmpty({ message: 'Meeting end available hours is required!' })
+    @IsMilitaryTime({ message: 'Meeting room end available hours must be in format: HH:MM' })
+    @IsNotEmpty({ message: 'Meeting room end available hours is required!' })
     @Expose()
     @AutoMap()
         endAvailableHours!: string;
 
-    @IsInt({ message: 'Meeting capacity must be an integer number!' })
-    @Min(1, { message: 'Meeting capacity must be at least 1!' })
-    @IsNotEmpty({ message: 'Meeting capacity is required!' })
+    @IsInt({ message: 'Meeting room capacity must be an integer number!' })
+    @Min(1, { message: 'Meeting room capacity must be at least 1!' })
+    @IsNotEmpty({ message: 'Meeting room capacity is required!' })
     @Expose()
     @AutoMap()
         capacity!: number;
@@ -39,20 +39,20 @@ export class MeetingRoomUpdateDto {
     @AutoMap()
         name?: string;
 
-    @IsMilitaryTime({ message: 'Meeting start available hours must be in format: HH:MM' })
+    @IsMilitaryTime({ message: 'Meeting room start available hours must be in format: HH:MM' })
     @IsOptional()
     @Expose()
     @AutoMap()
         startAvailableHours?: string;
 
-    @IsMilitaryTime({ message: 'Meeting end available hours must be in format: HH:MM' })
+    @IsMilitaryTime({ message: 'Meeting room end available hours must be in format: HH:MM' })
     @IsOptional()
     @Expose()
     @AutoMap()
         endAvailableHours?: string;
 
-    @IsInt({ message: 'Meeting capacity must be an integer number!' })
-    @Min(1, { message: 'Meeting capacity must be at least 1!' })
+    @IsInt({ message: 'Meeting room capacity must be an integer number!' })
+    @Min(1, { message: 'Meeting room capacity must be at least 1!' })
     @IsOptional()
     @Expose()
     @AutoMap()
