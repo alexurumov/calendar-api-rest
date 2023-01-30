@@ -68,7 +68,7 @@ export class MeetingManager {
             throw createHttpError.Conflict('Meeting should be limited within a single day!');
         }
 
-        // Participants existing?
+        // Participants Validation:
         if (meetingDto.participants && meetingDto.participants.length > 0) {
             try {
                 for (const participant of meetingDto.participants) {
@@ -77,6 +77,11 @@ export class MeetingManager {
                 // Participants duplication?
                 if (new Set(meetingDto.participants).size !== meetingDto.participants.length) {
                     throw createHttpError.Conflict('Cannot add same user more than once!');
+                }
+
+                // Participant not creator?
+                if (meetingDto.participants.some((par) => par === creator.username)) {
+                    throw createHttpError.Conflict('Cannot add creator as participant!');
                 }
             } catch (err: unknown) {
                 if (err instanceof HttpError) {
