@@ -69,14 +69,14 @@ export class UserUpdateDto extends BaseUserDto {
     @IsOptional()
     @Expose()
     @AutoMap()
-        username!: string;
+        username?: string;
 
     @MinLength(5, { message: 'Password must be at least 5 characters long!' })
     @MaxLength(20, { message: 'Password must not be more than 20 characters long!' })
     @IsOptional()
     @Expose()
     @AutoMap()
-        password!: string;
+        password?: string;
 }
 
 export type ReqQueryUserDto = Partial<UserDto>;

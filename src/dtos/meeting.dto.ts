@@ -1,20 +1,21 @@
 import { AutoMap } from '@automapper/classes';
 import { Expose } from 'class-transformer';
-import { IsDateString, IsNotEmpty, IsOptional } from 'class-validator';
+import { IsDateString, IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
 import { type UserDto } from './user.dto';
+import { Answered, Repeated } from '../entities/meeting.entity';
 
 export class Participant implements Pick<UserDto, 'username'> {
     @AutoMap()
         username!: string;
 
     @AutoMap()
-        answered: 'yes' | 'no' | 'pending' = 'pending';
+        answered: Answered = Answered.Pending;
 }
 
 export class Creator implements Pick<UserDto, 'username'> {
     username!: string;
 
-    answered: 'yes' | 'no' | 'pending' = 'yes';
+    answered: Answered = Answered.Yes;
 }
 
 export class MeetingDto {
@@ -45,6 +46,10 @@ export class MeetingDto {
     @Expose()
     @AutoMap()
         participants?: string[];
+
+    @Expose()
+    @AutoMap()
+        repeated: 'no' | 'daily' | 'weekly' | 'monthly' = 'no';
 }
 
 export class MeetingUpdateDto implements Partial<MeetingDto> {
@@ -69,6 +74,12 @@ export class MeetingUpdateDto implements Partial<MeetingDto> {
     @Expose()
     @AutoMap()
         end_time?: Date;
+
+    @IsEnum(Repeated, { message: 'Repeated must be one of the following: daily, weekly, monthly!' })
+    @IsOptional()
+    @Expose()
+    @AutoMap()
+        repeated?: Repeated;
 }
 
 export type ReqQueryMeetingDto = Partial<MeetingDto>;

@@ -12,7 +12,6 @@ export class MeetingService {
     }
 
     async create (dto: MeetingDto): Promise<MeetingDto> {
-        // TODO: Validate here or in Manager?
         const created = await this.meetingRepository.create(dto);
         return toMeetingDto(created);
     }
@@ -30,15 +29,6 @@ export class MeetingService {
         if (!existing) {
             throw createHttpError.NotFound('No such Meeting found!');
         }
-
-        /*
-        TODO: Validate specific meeting requirements:
-            - Are hours ok?
-            - Are hours in conflict with meeting room?
-            - Is room capacity ok?
-            - Is creator available in hours?
-         */
-
         const updated = await this.meetingRepository.updateById(id, dto);
         if (!updated) {
             throw createHttpError.BadRequest('Invalid input!');

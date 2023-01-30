@@ -4,6 +4,9 @@ import { type MeetingDto } from '../dtos/meeting.dto';
 import { userService, type UserService } from '../services/user.service';
 import { DateTime, Interval } from 'luxon';
 import { meetingRoomService, type MeetingRoomService } from '../services/meeting-room.service';
+import { UserMeeting } from '../entities/user.entity';
+import { UserUpdateDto } from '../dtos/user.dto';
+import { Answered } from '../entities/meeting.entity';
 
 export class MeetingManager {
     constructor (
@@ -15,6 +18,8 @@ export class MeetingManager {
     async create (meetingDto: MeetingDto): Promise<MeetingDto> {
         // TODO: Extract all validations to handler func!
 
+        // TODO: Add repeated to meetings
+
         /*
         Validate Creator:
         - Existing?
@@ -23,6 +28,8 @@ export class MeetingManager {
         // Existing?
         const creator = await this.userService.findById(meetingDto.creator);
         meetingDto.creator = creator.username;
+
+        // TODO: Check for conflict meetings in Creator!
 
         /*
         Validate Meeting Room:
@@ -91,9 +98,36 @@ export class MeetingManager {
             }
         }
 
-        // TODO: Conflict with other meetings?
-
         const createdMeeting = await this.meetingService.create(meetingDto);
+
+        const newMeeting = new UserMeeting();
+        // Only to satisfy null-check!
+        if (createdMeeting._id) {
+            newMeeting.meeting_id = createdMeeting._id;
+        }
+
+        /*
+        Where to add meeting to user? Here, or in User Service? Validation?
+        When we add meeting to creator, we must check for conflicts => so best to do it from here!
+        When we add to regular user, we do not check for conflicts => we can either add here, or through user service!
+        We do both from here for consistency!
+         */
+
+        // TODO: Add meeting to creator
+
+        // TODO: Add meeting to user
+
+        newMeeting.answered = Answered.Yes;
+        const meetingKey = DateTime.fromJSDate(new Date(createdMeeting.start_time)).toFormat('MM-dd-yyyy');
+        const userDto = new UserUpdateDto();
+        if (Object.keys(creator.meetings).some((key) => key === meetingKey)) {
+            userDto.meetings[meetingKey].push(newMeeting);
+        }
+
+        // Only to satisfy null-check!
+        if (creator._id) {
+            await this.userService.update(creator._id, userDto);
+        }
 
         return createdMeeting;
     }
