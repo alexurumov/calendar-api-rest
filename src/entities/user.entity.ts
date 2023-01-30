@@ -32,5 +32,4 @@ export class UserEntity {
 
     // @AutoMap(() => UserMeeting)
     meetings!: Map<string, UserMeeting[]>;
-    // meetings!: Map<string, UserMeeting[]> = new Map<string, UserMeeting[]>();
 }

@@ -1,6 +1,6 @@
 import { isValidObjectId, model, Schema } from 'mongoose';
 import { type BaseRepository } from './base.repository';
-import { type MeetingEntity } from '../entities/meeting.entity';
+import { type MeetingEntity, Repeated } from '../entities/meeting.entity';
 import { type MeetingDto } from '../dtos/meeting.dto';
 import { toMeetingEntity } from '../mappers/meeting.mapper';
 
@@ -40,7 +40,8 @@ const meetingSchema = new Schema<MeetingEntity>({
     }],
     repeated: {
         type: String,
-        required: true
+        required: true,
+        default: Repeated.No
     }
 });
 

@@ -1,4 +1,4 @@
-import { validateTimes } from './luxon.util';
+import { validateTimesHHMM } from './validate-datetimes.handler';
 import { type MeetingRoomEntity } from '../entities/meeting-room.entity';
 import { type MeetingRoomDto, type MeetingRoomUpdateDto } from '../dtos/meeting-room.dto';
 import createHttpError from 'http-errors';
@@ -21,14 +21,14 @@ export function validateUpdateMeetingRoom (existing: MeetingRoomEntity | null, d
 
     // Is start time before end time?
     if (dto.startAvailableHours) {
-        if (!validateTimes(dto.startAvailableHours, existing.endAvailableHours)) {
+        if (!validateTimesHHMM(dto.startAvailableHours, existing.endAvailableHours)) {
             throw createHttpError.BadRequest('Start hours must not be after end hours!');
         }
     }
 
     // Is end date after start date?
     if (dto.endAvailableHours) {
-        if (!validateTimes(existing.startAvailableHours, dto.endAvailableHours)) {
+        if (!validateTimesHHMM(existing.startAvailableHours, dto.endAvailableHours)) {
             throw createHttpError.BadRequest('End hours must not be before start hours!');
         }
     }
@@ -42,7 +42,7 @@ export function validateNewMeetingRoom (dto: MeetingRoomDto, all: MeetingRoomEnt
             throw createHttpError.Conflict('Name is already taken!');
         }
     }
-    if (!validateTimes(dto.startAvailableHours, dto.endAvailableHours)) {
+    if (!validateTimesHHMM(dto.startAvailableHours, dto.endAvailableHours)) {
         throw createHttpError.BadRequest('Start hours must not be after end hours!');
     }
 }

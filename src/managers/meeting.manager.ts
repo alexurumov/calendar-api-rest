@@ -5,8 +5,8 @@ import { userService, type UserService } from '../services/user.service';
 import { DateTime, Interval } from 'luxon';
 import { meetingRoomService, type MeetingRoomService } from '../services/meeting-room.service';
 import { UserMeeting } from '../entities/user.entity';
-import { UserUpdateDto } from '../dtos/user.dto';
-import { Answered } from '../entities/meeting.entity';
+import { Answered, Repeated } from '../entities/meeting.entity';
+import { meetingsInConflict } from '../handlers/validate-datetimes.handler';
 
 export class MeetingManager {
     constructor (
@@ -18,8 +18,6 @@ export class MeetingManager {
     async create (meetingDto: MeetingDto): Promise<MeetingDto> {
         // TODO: Extract all validations to handler func!
 
-        // TODO: Add repeated to meetings
-
         /*
         Validate Creator:
         - Existing?
@@ -28,8 +26,6 @@ export class MeetingManager {
         // Existing?
         const creator = await this.userService.findById(meetingDto.creator);
         meetingDto.creator = creator.username;
-
-        // TODO: Check for conflict meetings in Creator!
 
         /*
         Validate Meeting Room:
@@ -43,19 +39,19 @@ export class MeetingManager {
             throw createHttpError.Conflict('Meeting room capacity exceeded!');
         }
 
-        const start = DateTime.fromJSDate(new Date(meetingDto.start_time));
-        const end = DateTime.fromJSDate(new Date(meetingDto.end_time));
+        const meetingStart = DateTime.fromJSDate(new Date(meetingDto.start_time));
+        const meetingEnd = DateTime.fromJSDate(new Date(meetingDto.end_time));
 
         const [sHours, sMinutes] = room.startAvailableHours.split(':');
-        const roomStart = start.set({ hour: Number(sHours), minute: Number(sMinutes) });
+        const roomStart = meetingStart.set({ hour: Number(sHours), minute: Number(sMinutes) });
 
         const [eHours, eMinutes] = room.endAvailableHours.split(':');
-        const roomEnd = end.set({ hour: Number(eHours), minute: Number(eMinutes) });
+        const roomEnd = meetingEnd.set({ hour: Number(eHours), minute: Number(eMinutes) });
 
         const roomInterval = Interval.fromDateTimes(roomStart, roomEnd);
 
-        // Available hours?
-        if (!roomInterval.contains(start) || !roomInterval.contains(end)) {
+        // Is meetingStart within available hours' interval?
+        if (!roomInterval.contains(meetingStart) || !roomInterval.contains(meetingEnd)) {
             throw createHttpError.Conflict('Meeting times must be within meeting room available hours!');
         }
 
@@ -64,12 +60,12 @@ export class MeetingManager {
          */
 
         // Meeting start should be before meeting end!
-        if (start > end) {
+        if (meetingStart > meetingEnd) {
             throw createHttpError.Conflict('Start time cannot be after end time!');
         }
 
         // Meeting should be within the same day!
-        if (start.startOf('day').toMillis() !== end.startOf('day').toMillis()) {
+        if (meetingStart.startOf('day').toMillis() !== meetingEnd.startOf('day').toMillis()) {
             throw createHttpError.Conflict('Meeting should be limited within a single day!');
         }
 
@@ -98,36 +94,58 @@ export class MeetingManager {
             }
         }
 
+        // TODO: Check for conflict meetings in Creator!
+        for (const meetingKey in creator.meetings) {
+            // Validate repeated meetings
+            if (Object.keys(Repeated).map((key) => key.toLocaleLowerCase()).includes(meetingKey)) {
+                if (meetingKey !== meetingDto.repeated) {
+                    continue;
+                }
+                const userMeetings = creator.meetings[meetingKey];
+                for (const userMeeting of userMeetings) {
+                    const meeting = await this.meetingService.findById(userMeeting.meeting_id);
+                    if (meetingsInConflict(meetingDto, meeting)) {
+                        throw createHttpError.Conflict('Meeting must not be in conflict with creator existing meetings!');
+                    }
+                }
+            }
+
+            // Validate repeated meetings
+            const date = DateTime.fromFormat(meetingKey, 'MM-dd-yyyy');
+            if (date.startOf('day').toMillis() === meetingStart.startOf('day').toMillis()) {
+                const userMeetings = creator.meetings[meetingKey];
+                for (const userMeeting of userMeetings) {
+                    const meeting = await this.meetingService.findById(userMeeting.meeting_id);
+                    if (meetingsInConflict(meetingDto, meeting)) {
+                        throw createHttpError.Conflict('Meeting must not be in conflict creator with existing meetings!');
+                    }
+                }
+            }
+        }
+
+        // Create the meeting!
         const createdMeeting = await this.meetingService.create(meetingDto);
 
-        const newMeeting = new UserMeeting();
+        // TODO: Add meeting to creator
+        const newUserMeeting = new UserMeeting();
         // Only to satisfy null-check!
         if (createdMeeting._id) {
-            newMeeting.meeting_id = createdMeeting._id;
+            newUserMeeting.meeting_id = createdMeeting._id;
         }
-
-        /*
-        Where to add meeting to user? Here, or in User Service? Validation?
-        When we add meeting to creator, we must check for conflicts => so best to do it from here!
-        When we add to regular user, we do not check for conflicts => we can either add here, or through user service!
-        We do both from here for consistency!
-         */
-
-        // TODO: Add meeting to creator
-
-        // TODO: Add meeting to user
-
-        newMeeting.answered = Answered.Yes;
-        const meetingKey = DateTime.fromJSDate(new Date(createdMeeting.start_time)).toFormat('MM-dd-yyyy');
-        const userDto = new UserUpdateDto();
-        if (Object.keys(creator.meetings).some((key) => key === meetingKey)) {
-            userDto.meetings[meetingKey].push(newMeeting);
-        }
+        newUserMeeting.answered = Answered.Yes;
+        const meetingKey = meetingDto.repeated ? meetingDto.repeated : DateTime.fromJSDate(new Date(createdMeeting.start_time)).toFormat('MM-dd-yyyy');
 
         // Only to satisfy null-check!
         if (creator._id) {
-            await this.userService.update(creator._id, userDto);
+            // Check if meetingKey already exists! If yes, push to array; If not => create new key
+            if (!Object.keys(creator.meetings as Object).includes(meetingKey)) {
+                creator.meetings[meetingKey] = new Array<UserMeeting>();
+            }
+            creator.meetings[meetingKey].push(newUserMeeting);
+            await this.userService.update(creator._id, creator);
         }
+
+        // TODO: Add meeting to participants
 
         return createdMeeting;
     }

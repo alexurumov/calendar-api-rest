@@ -4,7 +4,7 @@ import { type PathParamUserDto, type ReqQueryUserDto, UserDto, UserRegisterDto, 
 import * as dotenv from 'dotenv';
 import * as process from 'process';
 import { plainToClass } from 'class-transformer';
-import { validateRequestBody } from '../utils/validate-request.util';
+import { validateRequestBody } from '../handlers/validate-request.handler';
 import createHttpError from 'http-errors';
 
 dotenv.config();

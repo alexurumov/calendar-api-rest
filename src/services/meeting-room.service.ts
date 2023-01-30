@@ -1,7 +1,7 @@
 import { type MeetingRoomRepository, meetingRoomRepository } from '../repositories/meeting-room.repository';
 import { type MeetingRoomDto, type MeetingRoomUpdateDto } from '../dtos/meeting-room.dto';
 import { toMeetingRoomDto } from '../mappers/meeting-room.mapper';
-import { validateNewMeetingRoom, validateUpdateMeetingRoom } from '../utils/validate-meeting-room.util';
+import { validateNewMeetingRoom, validateUpdateMeetingRoom } from '../handlers/validate-meeting-room.handler';
 import createHttpError from 'http-errors';
 
 export class MeetingRoomService {

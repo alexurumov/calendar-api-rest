@@ -4,7 +4,7 @@ import { toUserDto, toUserRegisterDto } from '../mappers/user.mapper';
 import { toHash, verifyHash } from '../utils/bcrypt.util';
 import createHttpError from 'http-errors';
 import { type UserEntity } from '../entities/user.entity';
-import { validateUpdateUser } from '../utils/validate-user.util';
+import { validateUpdateUser } from '../handlers/validate-user.handler';
 
 export class UserService {
     constructor (private readonly userRepository: UserRepository) {}

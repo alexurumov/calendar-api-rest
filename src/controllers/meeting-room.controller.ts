@@ -6,7 +6,7 @@ import {
     type PathParamMeetingRoomDto
 } from '../dtos/meeting-room.dto';
 import { plainToClass } from 'class-transformer';
-import { validateRequestBody } from '../utils/validate-request.util';
+import { validateRequestBody } from '../handlers/validate-request.handler';
 import createHttpError from 'http-errors';
 
 export class MeetingRoomController {

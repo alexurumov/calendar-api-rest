@@ -1,6 +1,6 @@
 import { type NextFunction, type Request, type Response } from 'express';
 import { plainToClass } from 'class-transformer';
-import { validateRequestBody } from '../utils/validate-request.util';
+import { validateRequestBody } from '../handlers/validate-request.handler';
 import createHttpError from 'http-errors';
 import { meetingService, type MeetingService } from '../services/meeting.service';
 import { MeetingDto, type PathParamMeetingDto, type ReqQueryMeetingDto } from '../dtos/meeting.dto';
