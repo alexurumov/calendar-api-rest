@@ -34,7 +34,7 @@ abstract class BaseUserDto {
         company?: string;
 
     @Expose()
-        meetings?: Record<string, UserMeeting[]>;
+        meetings: Record<string, UserMeeting[]> = {};
 }
 
 export class UserDto extends BaseUserDto {
@@ -60,7 +60,7 @@ export class UserRegisterDto extends UserDto {
         confirmPassword!: string;
 
     @AutoMap()
-        meetings!: Record<string, UserMeeting[]>;
+        meetings: Record<string, UserMeeting[]> = {};
 }
 
 export class UserUpdateDto extends BaseUserDto {

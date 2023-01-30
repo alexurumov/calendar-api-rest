@@ -13,6 +13,8 @@ export class MeetingManager {
     ) {}
 
     async create (meetingDto: MeetingDto): Promise<MeetingDto> {
+        // TODO: Extract all validations to handler func!
+
         /*
         Validate Creator:
         - Existing?
@@ -91,7 +93,9 @@ export class MeetingManager {
 
         // TODO: Conflict with other meetings?
 
-        return await this.meetingService.create(meetingDto);
+        const createdMeeting = await this.meetingService.create(meetingDto);
+
+        return createdMeeting;
     }
 
     // TODO: update + delete
