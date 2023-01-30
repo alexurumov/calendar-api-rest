@@ -6,7 +6,11 @@ import { DateTime, Interval } from 'luxon';
 import { meetingRoomService, type MeetingRoomService } from '../services/meeting-room.service';
 import { UserMeeting } from '../entities/user.entity';
 import { Answered, Repeated } from '../entities/meeting.entity';
-import { meetingsInConflict } from '../handlers/validate-datetimes.handler';
+import {
+    hasConflictInHours, hasConflictInHoursMonthly,
+    hasConflictInHoursWeekly,
+    meetingsInConflict
+} from '../handlers/validate-datetimes.handler';
 
 export class MeetingManager {
     constructor (
@@ -96,29 +100,52 @@ export class MeetingManager {
 
         // Check for conflict meetings in Creator!
         for (const meetingKey in creator.meetings) {
-            // Validate repeated meetings
-            if (Object.keys(Repeated).map((key) => key.toLocaleLowerCase()).includes(meetingKey)) {
-                if (meetingKey !== meetingDto.repeated) {
-                    continue;
-                }
-                const userMeetings = creator.meetings[meetingKey];
+            // Check for conflict with daily meetings
+            if (meetingKey === Repeated.Daily) {
+                const userMeetings = creator.meetings[Repeated.Daily];
                 for (const userMeeting of userMeetings) {
                     const meeting = await this.meetingService.findById(userMeeting.meeting_id);
-                    // TODO: Check conflicts in repeated more carefully!
-                    if (meetingsInConflict(meetingDto, meeting)) {
-                        throw createHttpError.Conflict('Meeting must not be in conflict with creator existing meetings!');
+                    // Check if there is a conflict with the hours of each daily, regardless of date!
+                    if (hasConflictInHours(meeting, meetingDto)) {
+                        throw createHttpError.Conflict('Meeting must not be in conflict with creator existing daily meetings!');
                     }
                 }
             }
 
-            // Validate repeated meetings
+            // Check for conflict with weekly meetings
+            if (meetingKey === Repeated.Weekly) {
+                const userMeetings = creator.meetings[Repeated.Weekly];
+                for (const userMeeting of userMeetings) {
+                    const meeting = await this.meetingService.findById(userMeeting.meeting_id);
+
+                    // Check if there is a conflict with the meetings only from the current day of each week!
+                    if (hasConflictInHoursWeekly(meeting, meetingDto)) {
+                        throw createHttpError.Conflict('Meeting must not be in conflict with creator existing weekly meetings!');
+                    }
+                }
+            }
+
+            // Check for conflict with monthly meetings
+            if (meetingKey === Repeated.Monthly) {
+                const userMeetings = creator.meetings[Repeated.Monthly];
+                for (const userMeeting of userMeetings) {
+                    const meeting = await this.meetingService.findById(userMeeting.meeting_id);
+
+                    // Check if there is a conflict with all monthly meetings for the current day!
+                    if (hasConflictInHoursMonthly(meeting, meetingDto)) {
+                        throw createHttpError.Conflict('Meeting must not be in conflict with creator existing monthly meetings!');
+                    }
+                }
+            }
+
+            // Check for conflict with not-repeating meetings
             const date = DateTime.fromFormat(meetingKey, 'MM-dd-yyyy');
             if (date.startOf('day').toMillis() === meetingStart.startOf('day').toMillis()) {
                 const userMeetings = creator.meetings[meetingKey];
                 for (const userMeeting of userMeetings) {
                     const meeting = await this.meetingService.findById(userMeeting.meeting_id);
                     if (meetingsInConflict(meetingDto, meeting)) {
-                        throw createHttpError.Conflict('Meeting must not be in conflict creator with existing meetings!');
+                        throw createHttpError.Conflict('Meeting must not be in conflict with creator existing meetings for the day!');
                     }
                 }
             }
@@ -134,7 +161,7 @@ export class MeetingManager {
             newUserMeeting.meeting_id = createdMeeting._id;
         }
         newUserMeeting.answered = Answered.Yes;
-        const meetingKey = meetingDto.repeated ? meetingDto.repeated : DateTime.fromJSDate(new Date(createdMeeting.start_time)).toFormat('MM-dd-yyyy');
+        const meetingKey = meetingDto.repeated ? meetingDto.repeated : DateTime.fromJSDate(new Date(createdMeeting.start_time)).toFormat('dd-MM-yyyy');
 
         // Only to satisfy null-check!
         if (creator._id) {

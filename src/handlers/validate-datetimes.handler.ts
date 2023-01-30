@@ -10,6 +10,52 @@ export function validateTimesHHMM (start: string, end: string): boolean {
     return startTime < endTime;
 }
 
+export function hasConflictInHours (existing: MeetingDto, meeting: MeetingDto): boolean {
+    // Extract Hours and Minutes from all 4 dates
+    const existingStartTime = DateTime.fromJSDate(new Date(existing.start_time)).toFormat('HH:mm');
+    const existingEndTime = DateTime.fromJSDate(new Date(existing.end_time)).toFormat('HH:mm');
+    const meetingStartTime = DateTime.fromJSDate(new Date(meeting.start_time)).toFormat('HH:mm');
+    const meetingEndTime = DateTime.fromJSDate(new Date(meeting.end_time)).toFormat('HH:mm');
+
+    // Construct dummy start and end date for EXISTING from "now", so we can compare times only!
+    const now = DateTime.now();
+    const [intervalStartHours, intervalStartMinutes] = existingStartTime.split(':');
+    const [intervalEndHours, intervalEndMinutes] = existingEndTime.split(':');
+    const intervalStart = now.set({ hour: Number(intervalStartHours), minute: Number(intervalStartMinutes) });
+    const intervalEnd = now.set({ hour: Number(intervalEndHours), minute: Number(intervalEndMinutes) });
+    const interval = Interval.fromDateTimes(intervalStart, intervalEnd);
+
+    // Construct dummy start and end date for NEW MEETING from "now", so we can compare times only!
+    const [meetingStartHours, meetingStartMinutes] = meetingStartTime.split(':');
+    const [meetingEndHours, meetingEndMinutes] = meetingEndTime.split(':');
+    const meetingStart = now.set({ hour: Number(meetingStartHours), minute: Number(meetingStartMinutes) });
+    const meetingEnd = now.set({ hour: Number(meetingEndHours), minute: Number(meetingEndMinutes) });
+
+    return interval.contains(meetingStart) || interval.contains(meetingEnd);
+}
+
+export function hasConflictInHoursWeekly (existing: MeetingDto, meeting: MeetingDto): boolean {
+    const existingDay = DateTime.fromJSDate(new Date(existing.start_time)).get('weekday');
+    const meetingDay = DateTime.fromJSDate(new Date(existing.start_time)).get('weekday');
+
+    if (existingDay === meetingDay) {
+        return hasConflictInHours(existing, meeting);
+    }
+
+    return false;
+}
+
+export function hasConflictInHoursMonthly (existing: MeetingDto, meeting: MeetingDto): boolean {
+    const existingDay = DateTime.fromJSDate(new Date(existing.start_time)).get('day');
+    const meetingDay = DateTime.fromJSDate(new Date(existing.start_time)).get('day');
+
+    if (existingDay === meetingDay) {
+        return hasConflictInHours(existing, meeting);
+    }
+
+    return false;
+}
+
 export function meetingsInConflict (meeting: MeetingDto, existing: MeetingDto): boolean {
     const existingStart = DateTime.fromJSDate(new Date(existing.start_time));
     const existingEnd = DateTime.fromJSDate(new Date(existing.end_time));
