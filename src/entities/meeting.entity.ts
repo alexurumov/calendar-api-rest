@@ -30,7 +30,7 @@ export class MeetingEntity {
     @AutoMap()
         end_time!: Date;
 
-    participants: Participant[] = [];
+    participants?: Participant[];
 
     @AutoMap()
         repeated: Repeated = Repeated.No;

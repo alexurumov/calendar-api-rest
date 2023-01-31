@@ -44,8 +44,7 @@ export class MeetingDto {
 
     @IsOptional()
     @Expose()
-    @AutoMap()
-        participants: string[] = [];
+        participants?: string[];
 
     @IsOptional()
     @IsEnum(Repeated, { message: 'Repeated must be one of the following: daily, weekly, monthly' })
@@ -55,11 +54,6 @@ export class MeetingDto {
 }
 
 export class MeetingUpdateDto implements Partial<MeetingDto> {
-    @IsOptional()
-    @Expose()
-    @AutoMap()
-        creator?: string;
-
     @IsOptional()
     @Expose()
     @AutoMap()

@@ -14,8 +14,6 @@ import { Creator, MeetingDto, Participant } from '../dtos/meeting.dto';
 
 const mapper = createMapper({ strategyInitializer: classes() });
 
-// TODO: Implement nested objects mapping
-
 const creatorConverter: Converter<string, Object> = {
     convert (source: string): Object {
         const creator = new Creator();
@@ -34,7 +32,7 @@ createMap(
     ),
     forMember(
         (dto) => dto.participants,
-        mapFrom((entity) => entity.participants.map((p) => p.username))
+        mapFrom((entity) => entity.participants ? entity.participants.map((p) => p.username) : undefined)
     )
 );
 createMap(
@@ -47,11 +45,13 @@ createMap(
     ),
     forMember(
         (entity) => entity.participants,
-        mapFrom((dto) => dto.participants.map((part) => {
-            const participant = new Participant();
-            participant.username = part;
-            return participant;
-        }))
+        mapFrom((dto) => dto.participants
+            ? dto.participants.map((part) => {
+                const participant = new Participant();
+                participant.username = part;
+                return participant;
+            })
+            : undefined)
     )
 );
 
