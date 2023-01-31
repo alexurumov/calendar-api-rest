@@ -63,7 +63,7 @@ export class UserRepository implements BaseRepository<UserEntity, UserRegisterDt
     }
 
     async updateById (id: string, dto: Partial<UserRegisterDto>): Promise<UserEntity | null> {
-        return await userModel.findByIdAndUpdate(id, dto);
+        return await userModel.findByIdAndUpdate(id, dto, { new: true });
     }
 
     async delete (id: string): Promise<UserEntity | null> {

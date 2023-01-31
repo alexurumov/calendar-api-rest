@@ -1,8 +1,8 @@
 import { isValidObjectId, model, Schema } from 'mongoose';
 import { type BaseRepository } from './base.repository';
 import { type MeetingEntity, Repeated } from '../entities/meeting.entity';
-import { type MeetingDto } from '../dtos/meeting.dto';
-import { toMeetingEntity } from '../mappers/meeting.mapper';
+import { type MeetingDto, type MeetingUpdateDto } from '../dtos/meeting.dto';
+import { toMeetingEntity, toMeetingEntityUpdate } from '../mappers/meeting.mapper';
 
 const meetingSchema = new Schema<MeetingEntity>({
     creator: {
@@ -64,11 +64,12 @@ export class MeetingRepository implements BaseRepository<MeetingEntity, MeetingD
         return await meetingModel.findById(id);
     }
 
-    async updateById (id: string, dto: Partial<MeetingDto>): Promise<MeetingEntity | null> {
+    async updateById (id: string, dto: MeetingUpdateDto): Promise<MeetingEntity | null> {
         if (!isValidObjectId(id)) {
             return null;
         }
-        return await meetingModel.findByIdAndUpdate(id, dto);
+        const entity = toMeetingEntityUpdate(dto);
+        return await meetingModel.findByIdAndUpdate(id, entity, { new: true });
     }
 
     async delete (id: string): Promise<MeetingEntity | null> {

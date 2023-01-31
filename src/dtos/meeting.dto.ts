@@ -47,13 +47,19 @@ export class MeetingDto {
         participants?: string[];
 
     @IsOptional()
-    @IsEnum(Repeated, { message: 'Repeated must be one of the following: daily, weekly, monthly' })
+    @IsEnum(Repeated, { message: 'Repeated must be one of the following: daily, weekly, monthly, (default: no)' })
     @Expose()
     @AutoMap()
         repeated: Repeated = Repeated.No;
 }
 
-export class MeetingUpdateDto implements Partial<MeetingDto> {
+export class MeetingUpdateDto {
+    @IsOptional()
+    @AutoMap()
+        _id?: string;
+
+    creator?: string;
+
     @IsOptional()
     @Expose()
     @AutoMap()
@@ -70,6 +76,16 @@ export class MeetingUpdateDto implements Partial<MeetingDto> {
     @Expose()
     @AutoMap()
         end_time?: Date;
+
+    @IsOptional()
+    @Expose()
+        participants?: string[];
+
+    @IsOptional()
+    @IsEnum(Repeated, { message: 'Repeated must be one of the following: daily, weekly, monthly, (default: no)' })
+    @Expose()
+    @AutoMap()
+        repeated?: Repeated;
 }
 
 export type ReqQueryMeetingDto = Partial<MeetingDto>;

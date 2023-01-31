@@ -3,7 +3,7 @@ import { plainToClass } from 'class-transformer';
 import { validateRequestBody } from '../handlers/validate-request.handler';
 import createHttpError from 'http-errors';
 import { meetingService, type MeetingService } from '../services/meeting.service';
-import { MeetingDto, type PathParamMeetingDto, type ReqQueryMeetingDto } from '../dtos/meeting.dto';
+import { MeetingDto, MeetingUpdateDto, type PathParamMeetingDto, type ReqQueryMeetingDto } from '../dtos/meeting.dto';
 import { meetingManager, type MeetingManager } from '../managers/meeting.manager';
 
 export class MeetingController {
@@ -54,38 +54,38 @@ export class MeetingController {
         }
     }
 
-    // TODO: update + delete
-    // async updateById (req: Request<PathParamMeetingDto, {}, MeetingUpdateDto>, res: Response, next: NextFunction): Promise<Response | void> {
-    //     // Transform request body to MeetingDto Class
-    //     const meetingDto = plainToClass(MeetingUpdateDto, req.body, { excludeExtraneousValues: true });
-    //
-    //     try {
-    //         // Validate request params ID
-    //         const id: string = req.params._id.trim();
-    //         if (!id) {
-    //             throw createHttpError.BadRequest('Meeting ID missing!');
-    //         }
-    //         await validateRequestBody(meetingDto);
-    //         const updatedMeeting = await this.meetingManager.update(id, meetingDto);
-    //         return res.status(200).json(updatedMeeting);
-    //     } catch (err: unknown) {
-    //         next(err);
-    //     }
-    // }
+    async updateById (req: Request<PathParamMeetingDto, {}, MeetingUpdateDto>, res: Response, next: NextFunction): Promise<Response | void> {
+        // Transform request body to MeetingDto Class
+        const meetingUpdateDto = plainToClass(MeetingUpdateDto, req.body, { excludeExtraneousValues: true });
 
-    async deleteById (req: Request<PathParamMeetingDto>, res: Response, next: NextFunction): Promise<Response | void> {
         try {
             // Validate request params ID
-            const id = req.params._id.trim();
+            const id: string = req.params._id.trim();
             if (!id) {
                 throw createHttpError.BadRequest('Meeting ID missing!');
             }
-            const deletedMeeting = await this.meetingService.delete(id);
-            return res.status(200).json(deletedMeeting);
+            await validateRequestBody(meetingUpdateDto);
+            const updatedMeeting = await this.meetingManager.update(id, meetingUpdateDto);
+            return res.status(200).json(updatedMeeting);
         } catch (err: unknown) {
             next(err);
         }
     }
+
+    // TODO: delete
+    // async deleteById (req: Request<PathParamMeetingDto>, res: Response, next: NextFunction): Promise<Response | void> {
+    //     try {
+    //         // Validate request params ID
+    //         const id = req.params._id.trim();
+    //         if (!id) {
+    //             throw createHttpError.BadRequest('Meeting ID missing!');
+    //         }
+    //         const deletedMeeting = await this.meetingService.delete(id);
+    //         return res.status(200).json(deletedMeeting);
+    //     } catch (err: unknown) {
+    //         next(err);
+    //     }
+    // }
 }
 
 export const meetingController = new MeetingController(meetingService, meetingManager);

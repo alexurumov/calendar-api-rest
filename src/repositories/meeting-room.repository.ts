@@ -55,7 +55,7 @@ export class MeetingRoomRepository implements BaseRepository<MeetingRoomEntity, 
         if (!isValidObjectId(id)) {
             return null;
         }
-        return await meetingRoomModel.findByIdAndUpdate(id, dto);
+        return await meetingRoomModel.findByIdAndUpdate(id, dto, { new: true });
     }
 
     async delete (id: string): Promise<MeetingRoomEntity | null> {

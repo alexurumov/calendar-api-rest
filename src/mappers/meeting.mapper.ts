@@ -10,7 +10,7 @@ import {
 import { classes } from '@automapper/classes';
 import { Types } from 'mongoose';
 import { MeetingEntity } from '../entities/meeting.entity';
-import { Creator, MeetingDto, Participant } from '../dtos/meeting.dto';
+import { Creator, MeetingDto, MeetingUpdateDto, Participant } from '../dtos/meeting.dto';
 
 const mapper = createMapper({ strategyInitializer: classes() });
 
@@ -55,5 +55,26 @@ createMap(
     )
 );
 
+createMap(
+    mapper,
+    MeetingUpdateDto,
+    MeetingEntity,
+    forMember(
+        (entity) => entity.creator,
+        convertUsing(creatorConverter, (dto) => dto.creator)
+    ),
+    forMember(
+        (entity) => entity.participants,
+        mapFrom((dto) => dto.participants
+            ? dto.participants.map((part) => {
+                const participant = new Participant();
+                participant.username = part;
+                return participant;
+            })
+            : undefined)
+    )
+);
+
 export const toMeetingDto = (e: MeetingEntity): MeetingDto => mapper.map(e, MeetingEntity, MeetingDto);
 export const toMeetingEntity = (d: MeetingDto): MeetingEntity => mapper.map(d, MeetingDto, MeetingEntity);
+export const toMeetingEntityUpdate = (d: MeetingUpdateDto): MeetingEntity => mapper.map(d, MeetingUpdateDto, MeetingEntity);
