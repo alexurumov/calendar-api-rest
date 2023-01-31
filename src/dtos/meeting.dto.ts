@@ -45,7 +45,7 @@ export class MeetingDto {
     @IsOptional()
     @Expose()
     @AutoMap()
-        participants?: string[];
+        participants: string[] = [];
 
     @IsOptional()
     @IsEnum(Repeated, { message: 'Repeated must be one of the following: daily, weekly, monthly' })
