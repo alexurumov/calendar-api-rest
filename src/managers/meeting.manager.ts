@@ -11,6 +11,49 @@ import {
     hasConflictInHoursWeekly,
     meetingsInConflict
 } from '../handlers/validate-datetimes.handler';
+import { type MeetingRoomDto } from '../dtos/meeting-room.dto';
+import { type UserDto } from '../dtos/user.dto';
+
+function validateRoomCapacity (meetingDto: MeetingDto, room: MeetingRoomDto): void {
+    if (meetingDto.participants?.length && meetingDto.participants.length > room.capacity - 1) {
+        throw createHttpError.Conflict('Meeting room capacity exceeded!');
+    }
+}
+
+function constructRoomInterval (room: MeetingRoomDto, meetingStart: DateTime, meetingEnd: DateTime): Interval {
+    const [sHours, sMinutes] = room.startAvailableHours.split(':');
+    const roomStart = meetingStart.set({
+        hour: Number(sHours),
+        minute: Number(sMinutes)
+    });
+
+    const [eHours, eMinutes] = room.endAvailableHours.split(':');
+    const roomEnd = meetingEnd.set({
+        hour: Number(eHours),
+        minute: Number(eMinutes)
+    });
+
+    const roomInterval = Interval.fromDateTimes(roomStart, roomEnd);
+    return roomInterval;
+}
+
+function validateTimesInInterval (roomInterval: Interval, meetingStart: DateTime, meetingEnd: DateTime): void {
+    if (!roomInterval.contains(meetingStart) || !roomInterval.contains(meetingEnd)) {
+        throw createHttpError.Conflict('Meeting times must be within meeting room available hours!');
+    }
+}
+
+function validateStartAndEndTime (meetingStart: DateTime, meetingEnd: DateTime): void {
+    if (meetingStart > meetingEnd) {
+        throw createHttpError.Conflict('Start time cannot be after end time!');
+    }
+}
+
+function validateWithinSameDay (meetingStart: DateTime, meetingEnd: DateTime): void {
+    if (meetingStart.startOf('day').toMillis() !== meetingEnd.startOf('day').toMillis()) {
+        throw createHttpError.Conflict('Meeting should be limited within a single day!');
+    }
+}
 
 export class MeetingManager {
     constructor (
@@ -20,85 +63,92 @@ export class MeetingManager {
     ) {}
 
     async create (meetingDto: MeetingDto): Promise<MeetingDto> {
-        // TODO: Extract all validations to handler func!
-
-        /*
-        Validate Creator:
-        - Existing?
-        - Has conflict meetings in same hour?
-         */
-        // Existing?
+        // Is Creator existing? If yes => store in variable and use below; If no => userService method will throw error, which will be handled by Controller
         const creator = await this.userService.findById(meetingDto.creator);
-        meetingDto.creator = creator.username;
 
-        /*
-        Validate Meeting Room:
-         */
-
-        // Existing?
+        // Is Meeting Room existing? If yes => store in variable and use below; If no => meetingRoomService method will throw error, which will be handled by Controller
         const room = await this.meetingRoomService.findByName(meetingDto.meeting_room);
 
-        // Capacity?
-        if (meetingDto.participants?.length && meetingDto.participants.length > room.capacity - 1) {
-            throw createHttpError.Conflict('Meeting room capacity exceeded!');
-        }
+        // Check if new meeting participants + creator does not exceed Meeting Room's capacity?
+        validateRoomCapacity(meetingDto, room);
 
+        // Transform new meeting start and end times to Luxon object DateTime and use variables below
         const meetingStart = DateTime.fromJSDate(new Date(meetingDto.start_time));
         const meetingEnd = DateTime.fromJSDate(new Date(meetingDto.end_time));
 
-        const [sHours, sMinutes] = room.startAvailableHours.split(':');
-        const roomStart = meetingStart.set({ hour: Number(sHours), minute: Number(sMinutes) });
+        // Make interval from room available hours in format HH:mm
+        const roomInterval = constructRoomInterval(room, meetingStart, meetingEnd);
 
-        const [eHours, eMinutes] = room.endAvailableHours.split(':');
-        const roomEnd = meetingEnd.set({ hour: Number(eHours), minute: Number(eMinutes) });
-
-        const roomInterval = Interval.fromDateTimes(roomStart, roomEnd);
-
-        // Is meetingStart within available hours' interval?
-        if (!roomInterval.contains(meetingStart) || !roomInterval.contains(meetingEnd)) {
-            throw createHttpError.Conflict('Meeting times must be within meeting room available hours!');
-        }
-
-        /*
-        Validate Meeting:
-         */
+        // Is Meeting within room interval span?
+        validateTimesInInterval(roomInterval, meetingStart, meetingEnd);
 
         // Meeting start should be before meeting end!
-        if (meetingStart > meetingEnd) {
-            throw createHttpError.Conflict('Start time cannot be after end time!');
-        }
+        validateStartAndEndTime(meetingStart, meetingEnd);
 
         // Meeting should be within the same day!
-        if (meetingStart.startOf('day').toMillis() !== meetingEnd.startOf('day').toMillis()) {
-            throw createHttpError.Conflict('Meeting should be limited within a single day!');
-        }
+        validateWithinSameDay(meetingStart, meetingEnd);
 
         // Participants Validation:
-        if (meetingDto.participants && meetingDto.participants.length > 0) {
-            try {
-                for (const participant of meetingDto.participants) {
-                    await this.userService.findByUsername(participant);
-                }
-                // Participants duplication?
-                if (new Set(meetingDto.participants).size !== meetingDto.participants.length) {
-                    throw createHttpError.Conflict('Cannot add same user more than once!');
-                }
+        await this.validateParticipants(meetingDto, creator);
 
-                // Participant not creator?
-                if (meetingDto.participants.some((par) => par === creator.username)) {
-                    throw createHttpError.Conflict('Cannot add creator as participant!');
+        // Check for conflict meetings in Creator!
+        await this.validateCreatorMeetingsConflict(creator, meetingDto, meetingStart);
+
+        // Map Creator username to meeting Dto
+        meetingDto.creator = creator.username;
+
+        // Create the meeting!
+        const createdMeeting = await this.meetingService.create(meetingDto);
+
+        // Construct UserMeeting Key
+        const meetingKey = meetingDto.repeated ? meetingDto.repeated : DateTime.fromJSDate(new Date(createdMeeting.start_time)).toFormat('dd-MM-yyyy');
+
+        const newUserMeeting = new UserMeeting();
+        // Only to satisfy null-check! If Meeting is created, Entity will always map _id to Dto! If it is not, an error will be thrown from the Service and will be handled by the Controller.
+        if (createdMeeting._id) {
+            newUserMeeting.meeting_id = createdMeeting._id;
+        }
+
+        // Add meeting to creator
+        await this.addUserMeetingToCreator(newUserMeeting, creator, meetingKey);
+
+        // Add meeting to participants
+        await this.addUserMeetingToParticipants(newUserMeeting, meetingDto, meetingKey);
+
+        return createdMeeting;
+    }
+
+    private async addUserMeetingToParticipants (newUserMeeting: UserMeeting, meetingDto: MeetingDto, meetingKey: string): Promise<void> {
+        newUserMeeting.answered = Answered.Pending;
+        if (meetingDto.participants) {
+            for (const participantUsername of meetingDto.participants) {
+                const participant = await this.userService.findByUsername(participantUsername);
+                if (!Object.keys(participant.meetings as Object).includes(meetingKey)) {
+                    participant.meetings[meetingKey] = new Array<UserMeeting>();
                 }
-            } catch (err: unknown) {
-                if (err instanceof HttpError) {
-                    if (err.statusCode === 409) {
-                        throw err;
-                    }
-                    throw createHttpError.BadRequest('Only registered users can be added as participants!');
+                participant.meetings[meetingKey].push(newUserMeeting);
+                if (participant._id) {
+                    await this.userService.update(participant._id, participant);
                 }
             }
         }
+    }
 
-        // Check for conflict meetings in Creator!
+    private async addUserMeetingToCreator (newUserMeeting: UserMeeting, creator: UserDto, meetingKey: string): Promise<void> {
+        newUserMeeting.answered = Answered.Yes;
+
+        // Only to satisfy null-check! If Creator exists, Entity will always map _id to Dto! If not, an error will be thrown from the Service and will be handled by the Controller.
+        if (creator._id) {
+            // Check if meetingKey already exists! If yes, push to array; If not => create new key
+            if (!Object.keys(creator.meetings as Object).includes(meetingKey)) {
+                creator.meetings[meetingKey] = new Array<UserMeeting>();
+            }
+            creator.meetings[meetingKey].push(newUserMeeting);
+            await this.userService.update(creator._id, creator);
+        }
+    }
+
+    private async validateCreatorMeetingsConflict (creator: UserDto, meetingDto: MeetingDto, meetingStart: DateTime): Promise<void> {
         for (const meetingKey in creator.meetings) {
             // Check for conflict with daily meetings
             if (meetingKey === Repeated.Daily) {
@@ -139,7 +189,7 @@ export class MeetingManager {
             }
 
             // Check for conflict with not-repeating meetings
-            const date = DateTime.fromFormat(meetingKey, 'MM-dd-yyyy');
+            const date = DateTime.fromFormat(meetingKey, 'dd-MM-yyyy');
             if (date.startOf('day').toMillis() === meetingStart.startOf('day').toMillis()) {
                 const userMeetings = creator.meetings[meetingKey];
                 for (const userMeeting of userMeetings) {
@@ -150,49 +200,35 @@ export class MeetingManager {
                 }
             }
         }
-
-        // Create the meeting!
-        const createdMeeting = await this.meetingService.create(meetingDto);
-
-        // Add meeting to creator
-        const newUserMeeting = new UserMeeting();
-        // Only to satisfy null-check!
-        if (createdMeeting._id) {
-            newUserMeeting.meeting_id = createdMeeting._id;
-        }
-        newUserMeeting.answered = Answered.Yes;
-        const meetingKey = meetingDto.repeated ? meetingDto.repeated : DateTime.fromJSDate(new Date(createdMeeting.start_time)).toFormat('dd-MM-yyyy');
-
-        // Only to satisfy null-check!
-        if (creator._id) {
-            // Check if meetingKey already exists! If yes, push to array; If not => create new key
-            if (!Object.keys(creator.meetings as Object).includes(meetingKey)) {
-                creator.meetings[meetingKey] = new Array<UserMeeting>();
-            }
-            creator.meetings[meetingKey].push(newUserMeeting);
-            await this.userService.update(creator._id, creator);
-        }
-
-        // Add meeting to participants
-        // Reuse already created User Meeting
-        newUserMeeting.answered = Answered.Pending;
-        if (meetingDto.participants) {
-            for (const participantUsername of meetingDto.participants) {
-                const participant = await this.userService.findByUsername(participantUsername);
-                if (!Object.keys(participant.meetings as Object).includes(meetingKey)) {
-                    participant.meetings[meetingKey] = new Array<UserMeeting>();
-                }
-                participant.meetings[meetingKey].push(newUserMeeting);
-                if (participant._id) {
-                    await this.userService.update(participant._id, participant);
-                }
-            }
-        }
-
-        return createdMeeting;
     }
 
-    // TODO: update + delete
+    private async validateParticipants (meetingDto: MeetingDto, creator: UserDto): Promise<void> {
+        if (meetingDto.participants && meetingDto.participants.length > 0) {
+            try {
+                for (const participant of meetingDto.participants) {
+                    await this.userService.findByUsername(participant);
+                }
+                // Participants duplication?
+                if (new Set(meetingDto.participants).size !== meetingDto.participants.length) {
+                    throw createHttpError.Conflict('Cannot add same user more than once!');
+                }
+
+                // Participant not creator?
+                if (meetingDto.participants.some((par) => par === creator.username)) {
+                    throw createHttpError.Conflict('Cannot add creator as participant!');
+                }
+            } catch (err: unknown) {
+                if (err instanceof HttpError) {
+                    if (err.statusCode === 409) {
+                        throw err;
+                    }
+                    throw createHttpError.BadRequest('Only registered users can be added as participants!');
+                }
+            }
+        }
+    }
+
+// TODO: update + delete
     // async updateById (req: Request<PathParamMeetingDto, {}, MeetingUpdateDto>, res: Response, next: NextFunction): Promise<Response | void> {
     // // Transform request body to MeetingDto Class
     //     const meetingDto = plainToClass(MeetingUpdateDto, req.body, { excludeExtraneousValues: true });
