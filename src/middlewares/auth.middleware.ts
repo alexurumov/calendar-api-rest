@@ -21,7 +21,8 @@ export const auth = async (req: Request, res: Response, next: NextFunction): Pro
 
         const jwtPayload = JWTVerifyToken(token, TOKEN_SECRET);
         const _id: string = jwtPayload.obj._id;
-        req.user = { _id };
+        const username: string = jwtPayload.obj.username;
+        req.user = { _id, username };
         next();
     } catch (err: unknown) {
         if (err instanceof JsonWebTokenError) {
