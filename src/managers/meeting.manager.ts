@@ -132,14 +132,11 @@ export class MeetingManager {
     }
 
     async update (id: string, meetingUpdateDto: MeetingUpdateDto): Promise<MeetingDto> {
-    // TODO: Validate if creator! => Guard
     // 1. Does meeting exist?
         const existing = await this.meetingService.findById(id);
 
         // Make a DUMMY MeetingDto to simulate conflict validation of a newly created meeting!
         const dummy = await this.meetingService.findById(id);
-
-        // TODO: Validate Creator Meetings: Make switch and make sure it doesn't circle around each meeting when Repeated.No!
 
         // 2. Check Meeting Room:
         let meetingRoom;
