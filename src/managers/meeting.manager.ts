@@ -59,10 +59,11 @@ export class MeetingManager {
         private readonly meetingService: MeetingService,
         private readonly userService: UserService,
         private readonly meetingRoomService: MeetingRoomService
-    ) {}
+    ) {
+    }
 
     async create (meetingDto: MeetingDto): Promise<MeetingDto> {
-        // Is Creator existing? If yes => store in variable and use below; If no => userService method will throw error, which will be handled by Controller
+    // Is Creator existing? If yes => store in variable and use below; If no => userService method will throw error, which will be handled by Controller
         const creator = await this.userService.findById(meetingDto.creator);
 
         // Is Meeting Room existing? If yes => store in variable and use below; If no => meetingRoomService method will throw error, which will be handled by Controller
@@ -91,7 +92,20 @@ export class MeetingManager {
         await this.validateParticipants(meetingDto, creator);
 
         // Check for conflict meetings in Creator!
-        await this.validateCreatorMeetingsConflict(creator, meetingDto);
+        switch (meetingDto.repeated) {
+            case Repeated.Daily:
+                await this.validateCreatorMeetingsConflictDaily(creator, meetingDto);
+                break;
+            case Repeated.Weekly:
+                await this.validateCreatorMeetingsConflictWeekly(creator, meetingDto);
+                break;
+            case Repeated.Monthly:
+                await this.validateCreatorMeetingsConflictMonthly(creator, meetingDto);
+                break;
+            default:
+                await this.validateCreatorMeetingsConflictNonRepeating(creator, meetingDto);
+                break;
+        }
 
         // Map Creator username to meeting Dto
         meetingDto.creator = creator.username;
@@ -118,8 +132,8 @@ export class MeetingManager {
     }
 
     async update (id: string, meetingUpdateDto: MeetingUpdateDto): Promise<MeetingDto> {
-        // TODO: Validate if creator! => Guard
-        // 1. Does meeting exist?
+    // TODO: Validate if creator! => Guard
+    // 1. Does meeting exist?
         const existing = await this.meetingService.findById(id);
 
         // Make a DUMMY MeetingDto to simulate conflict validation of a newly created meeting!
@@ -221,7 +235,20 @@ export class MeetingManager {
         validateRoomCapacity(meetingUpdateDto, meetingRoom);
 
         // We pass DUMMY Meeting Dto to validator + we exclude the current meeting from the conflict checks
-        await this.validateCreatorMeetingsConflict(creator, dummy, id);
+        switch (meetingUpdateDto.repeated) {
+            case Repeated.Daily:
+                await this.validateCreatorMeetingsConflictDaily(creator, dummy, id);
+                break;
+            case Repeated.Weekly:
+                await this.validateCreatorMeetingsConflictWeekly(creator, dummy, id);
+                break;
+            case Repeated.Monthly:
+                await this.validateCreatorMeetingsConflictMonthly(creator, dummy, id);
+                break;
+            default:
+                await this.validateCreatorMeetingsConflictNonRepeating(creator, dummy, id);
+                break;
+        }
 
         // If all validator checks pass, we have valid input and no conflicts, so we can update the meeting
         const updated = await this.meetingService.update(id, meetingUpdateDto);
@@ -261,6 +288,7 @@ export class MeetingManager {
     // TODO: delete
 
     private async addUserMeetingToParticipants (newUserMeeting: UserMeeting, meetingDto: MeetingDto | MeetingUpdateDto, meetingKey: string): Promise<void> {
+        newUserMeeting.answered = Answered.Pending;
         if (meetingDto.participants) {
             for (const participantUsername of meetingDto.participants) {
                 const participant = await this.userService.findByUsername(participantUsername);
@@ -289,13 +317,117 @@ export class MeetingManager {
         }
     }
 
-    private async validateCreatorMeetingsConflict (creator: UserDto, meetingDto: MeetingDto, meetingId: string = 'some-invalid-username!'): Promise<void> {
-        const meetingStart = DateTime.fromJSDate(new Date(meetingDto.start_time));
+    private async validateCreatorMeetingsConflictNonRepeating (creator: UserDto, meetingDto: MeetingDto, meetingId: string = 'some-invalid-username!'): Promise<void> {
+        const newMeetingStart = DateTime.fromJSDate(new Date(meetingDto.start_time));
         for (const meetingKey in creator.meetings) {
             switch (meetingKey) {
                 // Check for conflict with daily meetings
                 case Repeated.Daily: {
-                    // If meetingId param is present, we filter all meetings with it, so to exclude this particular meeting => We use this when Updateing Meeting
+                    // If meetingId param is present, we filter all meetings with it, so to exclude this particular meeting => We use this when Updating Meeting
+                    const userMeetings = creator.meetings[Repeated.Daily].filter((meetings) => meetings.meeting_id !== meetingId);
+                    for (const userMeeting of userMeetings) {
+                        const meeting = await this.meetingService.findById(userMeeting.meeting_id);
+                        const existingStart = DateTime.fromJSDate(new Date(meeting.start_time));
+                        // Check dates: Perform conflict validation only if date of new meeting is equal or greater than existing meeting
+                        if (newMeetingStart >= existingStart) {
+                            // Check if there is a conflict with the hours of each daily, regardless of date!
+                            if (hasConflictInHours(meeting, meetingDto)) {
+                                throw createHttpError.Conflict('Meeting must not be in conflict with creator existing daily meetings!');
+                            }
+                        }
+                    }
+                    break;
+                }
+                // Check for conflict with weekly meetings
+                case Repeated.Weekly: {
+                    // If meetingId param is present, we filter all meetings with it, so to exclude this particular meeting => We use this when Updating Meeting
+                    const userMeetings = creator.meetings[Repeated.Weekly].filter((meetings) => meetings.meeting_id !== meetingId);
+                    for (const userMeeting of userMeetings) {
+                        const meeting = await this.meetingService.findById(userMeeting.meeting_id);
+                        const existingStart = DateTime.fromJSDate(new Date(meeting.start_time));
+                        // Check dates: Perform conflict validation only if date of new meeting is equal or greater than existing meeting
+                        if (newMeetingStart >= existingStart) {
+                            // Check if there is a conflict with the meetings only from the current day of each week!
+                            if (hasConflictInHoursWeekly(meeting, meetingDto)) {
+                                throw createHttpError.Conflict('Meeting must not be in conflict with creator existing weekly meetings!');
+                            }
+                        }
+                    }
+                }
+                    break;
+                    // Check for conflict with monthly meetings
+                case Repeated.Monthly: {
+                    // If meetingId param is present, we filter all meetings with it, so to exclude this particular meeting => We use this when Updating Meeting
+                    const userMeetings = creator.meetings[Repeated.Monthly].filter((meetings) => meetings.meeting_id !== meetingId);
+                    for (const userMeeting of userMeetings) {
+                        const meeting = await this.meetingService.findById(userMeeting.meeting_id);
+                        const existingStart = DateTime.fromJSDate(new Date(meeting.start_time));
+                        // Check dates: Perform conflict validation only if date of new meeting is equal or greater than existing meeting
+                        if (newMeetingStart >= existingStart) {
+                            // Check if there is a conflict with all monthly meetings for the current day!
+                            if (hasConflictInHoursMonthly(meeting, meetingDto)) {
+                                throw createHttpError.Conflict('Meeting must not be in conflict with creator existing monthly meetings!');
+                            }
+                        }
+                    }
+                    break;
+                }
+                // Check for conflict with not-repeating meetings
+                default: {
+                    const date = DateTime.fromFormat(meetingKey, 'dd-MM-yyyy');
+                    if (date.startOf('day').toMillis() === newMeetingStart.startOf('day').toMillis()) {
+                        // If meetingId param is present, we filter all meetings with it, so to exclude this particular meeting => We use this when Updating Meeting
+                        const userMeetings = creator.meetings[meetingKey].filter((meetings) => meetings.meeting_id !== meetingId);
+                        for (const userMeeting of userMeetings) {
+                            const meeting = await this.meetingService.findById(userMeeting.meeting_id);
+                            if (meetingsInConflict(meetingDto, meeting)) {
+                                throw createHttpError.Conflict('Meeting must not be in conflict with creator existing meetings for the day!');
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    private async validateCreatorMeetingsConflictDaily (creator: UserDto, meetingDto: MeetingDto, meetingId: string = 'some-invalid-username!'): Promise<void> {
+        const newMeetingStart = DateTime.fromJSDate(new Date(meetingDto.start_time));
+        for (const meetingKey in creator.meetings) {
+            if (meetingKey === Repeated.No || undefined) {
+                const userMeetings = creator.meetings[meetingKey].filter((meetings) => meetings.meeting_id !== meetingId);
+                for (const userMeeting of userMeetings) {
+                    const meeting = await this.meetingService.findById(userMeeting.meeting_id);
+                    const existingStart = DateTime.fromJSDate(new Date(meeting.start_time));
+                    // Check dates: Perform conflict validation only if date of new daily meeting is equal or earlier than existing non-repeated meeting
+                    if (newMeetingStart <= existingStart) {
+                        // Check if there is a conflict with the hours of each daily, regardless of date!
+                        if (hasConflictInHours(meeting, meetingDto)) {
+                            throw createHttpError.Conflict('Meeting must not be in conflict with creator existing meetings!');
+                        }
+                    }
+                }
+            }
+            // Check for direct hours conflict with all meetings, regardless of type and date!
+            // If meetingId param is present, we filter all meetings with it, so to exclude this particular meeting => We use this when Updating Meeting
+            const userMeetings = creator.meetings[meetingKey].filter((meetings) => meetings.meeting_id !== meetingId);
+            for (const userMeeting of userMeetings) {
+                const meeting = await this.meetingService.findById(userMeeting.meeting_id);
+                // Check if there is a conflict with the hours of each daily, regardless of date!
+                if (hasConflictInHours(meeting, meetingDto)) {
+                    throw createHttpError.Conflict('Meeting must not be in conflict with creator existing meetings!');
+                }
+            }
+        }
+    }
+
+    private async validateCreatorMeetingsConflictWeekly (creator: UserDto, meetingDto: MeetingDto, meetingId: string = 'some-invalid-username!'): Promise<void> {
+        const newMeetingStart = DateTime.fromJSDate(new Date(meetingDto.start_time));
+        for (const meetingKey in creator.meetings) {
+            switch (meetingKey) {
+                // Check for conflict with daily meetings
+                case Repeated.Daily: {
+                    // If meetingId param is present, we filter all meetings with it, so to exclude this particular meeting => We use this when Updating Meeting
                     const userMeetings = creator.meetings[Repeated.Daily].filter((meetings) => meetings.meeting_id !== meetingId);
                     for (const userMeeting of userMeetings) {
                         const meeting = await this.meetingService.findById(userMeeting.meeting_id);
@@ -308,7 +440,7 @@ export class MeetingManager {
                 }
                 // Check for conflict with weekly meetings
                 case Repeated.Weekly: {
-                    // If meetingId param is present, we filter all meetings with it, so to exclude this particular meeting => We use this when Updateing Meeting
+                    // If meetingId param is present, we filter all meetings with it, so to exclude this particular meeting => We use this when Updating Meeting
                     const userMeetings = creator.meetings[Repeated.Weekly].filter((meetings) => meetings.meeting_id !== meetingId);
                     for (const userMeeting of userMeetings) {
                         const meeting = await this.meetingService.findById(userMeeting.meeting_id);
@@ -320,9 +452,9 @@ export class MeetingManager {
                     }
                 }
                     break;
-                // Check for conflict with monthly meetings
+                    // Check for conflict with monthly meetings
                 case Repeated.Monthly: {
-                    // If meetingId param is present, we filter all meetings with it, so to exclude this particular meeting => We use this when Updateing Meeting
+                    // If meetingId param is present, we filter all meetings with it, so to exclude this particular meeting => We use this when Updating Meeting
                     const userMeetings = creator.meetings[Repeated.Monthly].filter((meetings) => meetings.meeting_id !== meetingId);
                     for (const userMeeting of userMeetings) {
                         const meeting = await this.meetingService.findById(userMeeting.meeting_id);
@@ -336,13 +468,78 @@ export class MeetingManager {
                 }
                 // Check for conflict with not-repeating meetings
                 default: {
-                    const date = DateTime.fromFormat(meetingKey, 'dd-MM-yyyy');
-                    if (date.startOf('day').toMillis() === meetingStart.startOf('day').toMillis()) {
-                        // If meetingId param is present, we filter all meetings with it, so to exclude this particular meeting => We use this when Updateing Meeting
-                        const userMeetings = creator.meetings[meetingKey].filter((meetings) => meetings.meeting_id !== meetingId);
-                        for (const userMeeting of userMeetings) {
-                            const meeting = await this.meetingService.findById(userMeeting.meeting_id);
-                            if (meetingsInConflict(meetingDto, meeting)) {
+                    const userMeetings = creator.meetings[meetingKey].filter((meetings) => meetings.meeting_id !== meetingId);
+                    for (const userMeeting of userMeetings) {
+                        const meeting = await this.meetingService.findById(userMeeting.meeting_id);
+                        const existingStart = DateTime.fromJSDate(new Date(meeting.start_time));
+                        // Check dates: Perform conflict validation only if date of new weekly meeting is equal or earlier than existing non-repeated meeting
+                        if (newMeetingStart <= existingStart) {
+                            if (hasConflictInHoursWeekly(meetingDto, meeting)) {
+                                throw createHttpError.Conflict('Meeting must not be in conflict with creator existing meetings for the day!');
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    private async validateCreatorMeetingsConflictMonthly (creator: UserDto, meetingDto: MeetingDto, meetingId: string = 'some-invalid-username!'): Promise<void> {
+        const newMeetingStart = DateTime.fromJSDate(new Date(meetingDto.start_time));
+        for (const meetingKey in creator.meetings) {
+            switch (meetingKey) {
+                // Check for conflict with daily meetings
+                case Repeated.Daily: {
+                    // If meetingId param is present, we filter all meetings with it, so to exclude this particular meeting => We use this when Updating Meeting
+                    const userMeetings = creator.meetings[Repeated.Daily].filter((meetings) => meetings.meeting_id !== meetingId);
+                    for (const userMeeting of userMeetings) {
+                        const meeting = await this.meetingService.findById(userMeeting.meeting_id);
+                        // Check if there is a conflict with the hours of each daily, regardless of date!
+                        if (hasConflictInHours(meeting, meetingDto)) {
+                            throw createHttpError.Conflict('Meeting must not be in conflict with creator existing daily meetings!');
+                        }
+                    }
+                    break;
+                }
+                // Check for conflict with weekly meetings
+                case Repeated.Weekly: {
+                    // If meetingId param is present, we filter all meetings with it, so to exclude this particular meeting => We use this when Updating Meeting
+                    const userMeetings = creator.meetings[Repeated.Weekly].filter((meetings) => meetings.meeting_id !== meetingId);
+                    for (const userMeeting of userMeetings) {
+                        const meeting = await this.meetingService.findById(userMeeting.meeting_id);
+
+                        // Check if there is a conflict with the meetings only from the current day of each week!
+                        if (hasConflictInHoursWeekly(meeting, meetingDto)) {
+                            throw createHttpError.Conflict('Meeting must not be in conflict with creator existing weekly meetings!');
+                        }
+                    }
+                }
+                    break;
+                    // Check for conflict with monthly meetings
+                case Repeated.Monthly: {
+                    // If meetingId param is present, we filter all meetings with it, so to exclude this particular meeting => We use this when Updating Meeting
+                    const userMeetings = creator.meetings[Repeated.Monthly].filter((meetings) => meetings.meeting_id !== meetingId);
+                    for (const userMeeting of userMeetings) {
+                        const meeting = await this.meetingService.findById(userMeeting.meeting_id);
+
+                        // Check if there is a conflict with all monthly meetings for the current day!
+                        if (hasConflictInHoursMonthly(meeting, meetingDto)) {
+                            throw createHttpError.Conflict('Meeting must not be in conflict with creator existing monthly meetings!');
+                        }
+                    }
+                    break;
+                }
+                // Check for conflict with not-repeating meetings
+                default: {
+                    // If meetingId param is present, we filter all meetings with it, so to exclude this particular meeting => We use this when Updating Meeting
+                    const userMeetings = creator.meetings[meetingKey].filter((meetings) => meetings.meeting_id !== meetingId);
+                    for (const userMeeting of userMeetings) {
+                        const meeting = await this.meetingService.findById(userMeeting.meeting_id);
+                        const existingStart = DateTime.fromJSDate(new Date(meeting.start_time));
+                        // Check dates: Perform conflict validation only if date of new weekly meeting is equal or earlier than existing non-repeated meeting
+                        if (newMeetingStart <= existingStart) {
+                            if (hasConflictInHoursMonthly(meetingDto, meeting)) {
                                 throw createHttpError.Conflict('Meeting must not be in conflict with creator existing meetings for the day!');
                             }
                         }
@@ -380,7 +577,7 @@ export class MeetingManager {
     }
 
     private async removeUserMeeting (oldMeetingKey: string, user: UserDto, id: string): Promise<void> {
-        // Remove the meeting from Creator's Map
+    // Remove the meeting from Creator's Map
         user.meetings[oldMeetingKey] = user.meetings[oldMeetingKey].filter((meetings) => meetings.meeting_id !== id);
         // Only to satisfy null check! Creator ID will always be present!
         if (user._id) {
