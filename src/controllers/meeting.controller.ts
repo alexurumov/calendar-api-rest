@@ -72,20 +72,19 @@ export class MeetingController {
         }
     }
 
-    // TODO: delete
-    // async deleteById (req: Request<PathParamMeetingDto>, res: Response, next: NextFunction): Promise<Response | void> {
-    //     try {
-    //         // Validate request params ID
-    //         const id = req.params._id.trim();
-    //         if (!id) {
-    //             throw createHttpError.BadRequest('Meeting ID missing!');
-    //         }
-    //         const deletedMeeting = await this.meetingService.delete(id);
-    //         return res.status(200).json(deletedMeeting);
-    //     } catch (err: unknown) {
-    //         next(err);
-    //     }
-    // }
+    async deleteById (req: Request<PathParamMeetingDto>, res: Response, next: NextFunction): Promise<Response | void> {
+        try {
+            // Validate request params ID
+            const id = req.params._id.trim();
+            if (!id) {
+                throw createHttpError.BadRequest('Meeting ID missing!');
+            }
+            const deletedMeeting = await this.meetingManager.delete(id);
+            return res.status(200).json(deletedMeeting);
+        } catch (err: unknown) {
+            next(err);
+        }
+    }
 }
 
 export const meetingController = new MeetingController(meetingService, meetingManager);

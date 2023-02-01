@@ -285,7 +285,28 @@ export class MeetingManager {
         return updated;
     }
 
-    // TODO: delete
+    async delete (id: string): Promise<MeetingDto> {
+        // Delete meeting from meetings
+        const deleted = await this.meetingService.delete(id);
+
+        const creator = await this.userService.findByUsername(deleted.creator);
+        const oldMeetingKey = deleted.repeated !== Repeated.No ? deleted.repeated : DateTime.fromJSDate(new Date(deleted.start_time)).toFormat('dd-MM-yyyy');
+
+        // Only to satisfy null-check! If Meeting exists, it will always have a valid creator username stored! If not, an error will be thrown from the Service and will be handled by the Controller.
+        if (deleted._id) {
+            // Remove UserMeetings from creator
+            await this.removeUserMeeting(oldMeetingKey, creator, deleted._id);
+
+            // Remove UserMeetings from participants
+            if (deleted.participants) {
+                for (const participantUsername of deleted.participants) {
+                    const participant = await this.userService.findByUsername(participantUsername);
+                    await this.removeUserMeeting(oldMeetingKey, participant, deleted._id);
+                }
+            }
+        }
+        return deleted;
+    }
 
     private async addUserMeetingToParticipants (newUserMeeting: UserMeeting, meetingDto: MeetingDto | MeetingUpdateDto, meetingKey: string): Promise<void> {
         newUserMeeting.answered = Answered.Pending;
