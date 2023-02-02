@@ -3,7 +3,7 @@ import { plainToClass } from 'class-transformer';
 import { validateRequestBody } from '../handlers/validate-request.handler';
 import createHttpError from 'http-errors';
 import { meetingService, type MeetingService } from '../services/meeting.service';
-import { MeetingDto, MeetingUpdateDto, type PathParamMeetingDto, type ReqQueryMeetingDto } from '../dtos/meeting.dto';
+import { MeetingDto, MeetingUpdateDto, type PathParamMeetingDto, type ReqQueryFilterMeetings } from '../dtos/meeting.dto';
 import { meetingManager, type MeetingManager } from '../managers/meeting.manager';
 
 export class MeetingController {
@@ -12,10 +12,13 @@ export class MeetingController {
         private readonly meetingManager: MeetingManager
     ) {}
 
-    async getAll (req: Request<{}, {}, {}, ReqQueryMeetingDto>, res: Response, next: NextFunction): Promise<Response | void> {
+    async getAll (req: Request<{}, {}, {}, ReqQueryFilterMeetings>, res: Response, next: NextFunction): Promise<Response | void> {
         try {
-            const meetings = await this.meetingService.getAll();
-            return res.status(200).json(meetings);
+            // const meetings = await this.meetingService.getAll();
+            if (req.user?._id) {
+                const meetings = await this.meetingManager.getAll(req.user._id, req.query.answered, req.query.period);
+                return res.status(200).json(meetings);
+            } else throw createHttpError.Unauthorized('Please, log in!');
         } catch (err: unknown) {
             next(err);
         }

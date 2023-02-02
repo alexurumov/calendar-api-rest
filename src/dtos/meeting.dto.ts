@@ -88,6 +88,15 @@ export class MeetingUpdateDto {
         repeated?: Repeated;
 }
 
-export type ReqQueryMeetingDto = Partial<MeetingDto>;
+export class ReqQueryFilterMeetings {
+    answered?: Answered;
+    period?: Period;
+};
+
+export enum Period {
+    Today = 'today',
+    Past = 'past',
+    Future = 'future'
+}
 
 export type PathParamMeetingDto = Required<Pick<MeetingDto, '_id'>>;

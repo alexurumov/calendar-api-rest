@@ -1,11 +1,15 @@
 import { Types } from 'mongoose';
 import { AutoMap } from '@automapper/classes';
-import { type Creator } from '../dtos/meeting.dto';
+import { type Creator, MeetingDto } from '../dtos/meeting.dto';
 import { Answered } from './meeting.entity';
 
 export class UserMeeting implements Pick<Creator, 'answered'> {
     meeting_id!: string;
     answered: Answered = Answered.Pending;
+}
+
+export class UserMeetingFull extends MeetingDto {
+    answered!: Answered;
 }
 
 export class UserEntity {

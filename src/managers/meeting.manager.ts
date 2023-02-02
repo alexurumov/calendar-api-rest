@@ -1,10 +1,10 @@
 import createHttpError, { HttpError } from 'http-errors';
 import { meetingService, type MeetingService } from '../services/meeting.service';
-import { type MeetingDto, type MeetingUpdateDto } from '../dtos/meeting.dto';
+import { type MeetingDto, type MeetingUpdateDto, Period } from '../dtos/meeting.dto';
 import { userService, type UserService } from '../services/user.service';
 import { DateTime, Interval } from 'luxon';
 import { meetingRoomService, type MeetingRoomService } from '../services/meeting-room.service';
-import { UserMeeting } from '../entities/user.entity';
+import { UserMeeting, type UserMeetingFull } from '../entities/user.entity';
 import { Answered, Repeated } from '../entities/meeting.entity';
 import {
     hasConflictInHours,
@@ -14,6 +14,7 @@ import {
 } from '../handlers/validate-datetimes.handler';
 import { type MeetingRoomDto } from '../dtos/meeting-room.dto';
 import { type UserDto } from '../dtos/user.dto';
+import { toUserMeetingFull } from '../mappers/userMeeting.mapper';
 
 function validateRoomCapacity (meetingDto: MeetingDto | MeetingUpdateDto, room: MeetingRoomDto): void {
     if (meetingDto.participants?.length && meetingDto.participants.length > room.capacity - 1) {
@@ -60,6 +61,112 @@ export class MeetingManager {
         private readonly userService: UserService,
         private readonly meetingRoomService: MeetingRoomService
     ) {
+    }
+
+    async getAll (_id: string, answered?: string, period?: string): Promise<UserMeetingFull[]> {
+        const user = await this.userService.findById(_id);
+        let userMeetings: UserMeetingFull[] = [];
+        for (const meetingsKey in user.meetings) {
+            for (const userMeeting of user.meetings[meetingsKey]) {
+                const meeting = await this.meetingService.findById(userMeeting.meeting_id);
+                const userMeetingFull = toUserMeetingFull(meeting);
+                userMeetingFull.answered = userMeeting.answered;
+                userMeetings.push(userMeetingFull);
+            }
+        }
+
+        if (answered) {
+            if (!Object.values(Answered as Object).includes(answered)) {
+                throw createHttpError.BadRequest('Answered filter must be one of the following: yes | no | pending');
+            }
+            switch (answered) {
+                case Answered.Yes:
+                    userMeetings = userMeetings.filter((userMeeting) => userMeeting.answered === Answered.Yes);
+                    break;
+                case Answered.Pending:
+                    userMeetings = userMeetings.filter((userMeeting) => userMeeting.answered === Answered.Pending);
+                    break;
+                default:
+                    userMeetings = userMeetings.filter((userMeeting) => userMeeting.answered === Answered.No);
+                    break;
+            }
+        }
+
+        function isUserMeetingFromToday (userMeeting: UserMeetingFull): boolean {
+            switch (userMeeting.repeated) {
+                case Repeated.Daily: {
+                    // Check if daily has already begun
+                    const userMeetingStart = DateTime.fromJSDate(new Date(userMeeting.startTime));
+                    const todayEnd = DateTime.now().endOf('day');
+                    return userMeetingStart <= todayEnd;
+                }
+                case Repeated.Weekly: {
+                    // Check if weekly matches the weekday
+                    const userMeetingWeekDay = DateTime.fromJSDate(new Date(userMeeting.startTime)).weekday;
+                    const todayWeekDay = DateTime.now().weekday;
+
+                    // Check if weekly has already begun
+                    const meetingStart = DateTime.fromJSDate(new Date(userMeeting.startTime));
+                    const todayEnd = DateTime.now().endOf('day');
+
+                    return userMeetingWeekDay === todayWeekDay && meetingStart <= todayEnd;
+                }
+                case Repeated.Monthly: {
+                    // Check if monthly matches the weekday
+                    const userMeetingMonthDay = DateTime.fromJSDate(new Date(userMeeting.startTime)).get('day');
+                    const todayMonthDay = DateTime.now().get('day');
+
+                    // Check if monthly has already begun
+                    const meetingStart = DateTime.fromJSDate(new Date(userMeeting.startTime));
+                    const todayEnd = DateTime.now().endOf('day');
+
+                    return userMeetingMonthDay === todayMonthDay && meetingStart <= todayEnd;
+                }
+                default:{
+                    // Check if non-repeating meeting is for today
+                    const userMeetingStart = DateTime.fromJSDate(new Date(userMeeting.startTime));
+                    const todayStart = DateTime.now().startOf('day');
+                    const todayEnd = DateTime.now().endOf('day');
+                    const todayInterval = Interval.fromDateTimes(todayStart, todayEnd);
+
+                    return todayInterval.contains(userMeetingStart);
+                }
+            }
+        }
+
+        function isUserMeetingInPast (userMeeting: UserMeetingFull): boolean {
+            // Check if end time is before the start of today
+            const userMeetingEnd = DateTime.fromJSDate(new Date(userMeeting.endTime));
+            const todayStart = DateTime.now().startOf('day');
+
+            return userMeetingEnd < todayStart;
+        }
+
+        function isUserMeetingInFuture (userMeeting: UserMeetingFull): boolean {
+            // Check if start time is after the end of today
+            const userMeetingStart = DateTime.fromJSDate(new Date(userMeeting.startTime));
+            const todayEnd = DateTime.now().endOf('day');
+
+            return userMeetingStart > todayEnd;
+        }
+
+        if (period) {
+            if (!Object.values(Period as Object).includes(period)) {
+                throw createHttpError.BadRequest('Period filter must be one of the following: today | past | future');
+            }
+            switch (period) {
+                case Period.Today:
+                    userMeetings = userMeetings.filter((userMeeting) => isUserMeetingFromToday(userMeeting));
+                    break;
+                case Period.Past:
+                    userMeetings = userMeetings.filter((userMeeting) => isUserMeetingInPast(userMeeting));
+                    break;
+                default:
+                    userMeetings = userMeetings.filter((userMeeting) => isUserMeetingInFuture(userMeeting));
+                    break;
+            }
+        }
+        return userMeetings;
     }
 
     async create (meetingDto: MeetingDto): Promise<MeetingDto> {
