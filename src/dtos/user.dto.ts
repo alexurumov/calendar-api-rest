@@ -82,3 +82,8 @@ export class UserUpdateDto extends BaseUserDto {
 export type ReqQueryUserDto = Partial<UserDto>;
 
 export type PathParamUserDto = Required<Pick<UserDto, '_id'>>;
+
+export class PathParamUpdateStatusDto {
+    @IsNotEmpty({ message: 'Meeting ID is required for update status' })
+        meetingId!: string;
+}

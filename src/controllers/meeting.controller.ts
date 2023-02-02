@@ -3,7 +3,12 @@ import { plainToClass } from 'class-transformer';
 import { validateRequestBody } from '../handlers/validate-request.handler';
 import createHttpError from 'http-errors';
 import { meetingService, type MeetingService } from '../services/meeting.service';
-import { MeetingDto, MeetingUpdateDto, type PathParamMeetingDto, type ReqQueryFilterMeetings } from '../dtos/meeting.dto';
+import {
+    MeetingDto,
+    MeetingUpdateDto,
+    type PathParamMeetingDto,
+    type ReqQueryFilterMeetings
+} from '../dtos/meeting.dto';
 import { meetingManager, type MeetingManager } from '../managers/meeting.manager';
 
 export class MeetingController {

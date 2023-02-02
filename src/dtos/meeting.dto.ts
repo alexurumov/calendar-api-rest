@@ -93,6 +93,13 @@ export class ReqQueryFilterMeetings {
     period?: Period;
 };
 
+export class StatusUpdateDto implements Required<Pick<Participant, 'answered'>> {
+    @IsEnum(Answered, { message: 'New status must be one of the following: yes | no | pending' })
+    @IsNotEmpty({ message: 'New status cannot be empty!' })
+    @Expose()
+        answered!: Answered;
+}
+
 export enum Period {
     Today = 'today',
     Past = 'past',

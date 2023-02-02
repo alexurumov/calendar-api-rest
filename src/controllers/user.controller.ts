@@ -1,11 +1,19 @@
 import { type NextFunction, type Request, type Response } from 'express';
 import { userService, type UserService } from '../services/user.service';
-import { type PathParamUserDto, type ReqQueryUserDto, UserDto, UserRegisterDto, UserUpdateDto } from '../dtos/user.dto';
+import {
+    PathParamUpdateStatusDto,
+    type PathParamUserDto,
+    type ReqQueryUserDto,
+    UserDto,
+    UserRegisterDto,
+    UserUpdateDto
+} from '../dtos/user.dto';
 import * as dotenv from 'dotenv';
 import * as process from 'process';
 import { plainToClass } from 'class-transformer';
 import { validateRequestBody } from '../handlers/validate-request.handler';
 import createHttpError from 'http-errors';
+import { StatusUpdateDto } from '../dtos/meeting.dto';
 
 dotenv.config();
 
@@ -71,6 +79,41 @@ export class UserController {
             }
             await validateRequestBody(userDto);
             const updated = await this.userService.update(id, userDto);
+            return res.status(200).json(updated);
+        } catch (err: unknown) {
+            next(err);
+        }
+    }
+
+    async updateStatus (req: Request<PathParamUpdateStatusDto, {}, StatusUpdateDto>, res: Response, next: NextFunction): Promise<Response | void> {
+        // Transform request body to MeetingDto Class
+        const pathParams = plainToClass(PathParamUpdateStatusDto, req.params);
+        const statusUpdateDto = plainToClass(StatusUpdateDto, req.body, { excludeExtraneousValues: true });
+
+        try {
+            // Validate request params ID and request body
+            await Promise.all([validateRequestBody(pathParams), validateRequestBody(statusUpdateDto)]);
+            // Pass userId of Logged user to service
+            if (!req.user) {
+                throw createHttpError.Unauthorized('Please, log in!');
+            }
+            const user = await this.userService.findById(req.user._id);
+            let userMeeting;
+            for (const meetingsKey in user.meetings) {
+                const found = user.meetings[meetingsKey].find((usm) => usm.meeting_id === pathParams.meetingId);
+                if (found) {
+                    userMeeting = found;
+                    break;
+                }
+            }
+            if (!userMeeting) {
+                throw createHttpError.NotFound('No such user meeting found!');
+            }
+
+            // TODO: Check for conflict meetings when trying to answer "YES"!
+
+            userMeeting.answered = statusUpdateDto.answered;
+            const updated = await this.userService.update(req.user._id, user);
             return res.status(200).json(updated);
         } catch (err: unknown) {
             next(err);
