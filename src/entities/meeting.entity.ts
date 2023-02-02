@@ -22,13 +22,13 @@ export class MeetingEntity {
     creator!: Creator;
 
     @AutoMap()
-        meeting_room!: string;
+        meetingRoom!: string;
 
     @AutoMap()
-        start_time!: Date;
+        startTime!: Date;
 
     @AutoMap()
-        end_time!: Date;
+        endTime!: Date;
 
     participants?: Participant[];
 

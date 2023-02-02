@@ -67,14 +67,14 @@ export class MeetingManager {
         const creator = await this.userService.findById(meetingDto.creator);
 
         // Is Meeting Room existing? If yes => store in variable and use below; If no => meetingRoomService method will throw error, which will be handled by Controller
-        const room = await this.meetingRoomService.findByName(meetingDto.meeting_room);
+        const room = await this.meetingRoomService.findByName(meetingDto.meetingRoom);
 
         // Check if new meeting participants + creator does not exceed Meeting Room's capacity?
         validateRoomCapacity(meetingDto, room);
 
         // Transform new meeting start and end times to Luxon object DateTime and use variables below
-        const meetingStart = DateTime.fromJSDate(new Date(meetingDto.start_time));
-        const meetingEnd = DateTime.fromJSDate(new Date(meetingDto.end_time));
+        const meetingStart = DateTime.fromJSDate(new Date(meetingDto.startTime));
+        const meetingEnd = DateTime.fromJSDate(new Date(meetingDto.endTime));
 
         // Make interval from room available hours in format HH:mm
         const roomInterval = constructRoomInterval(room, meetingStart, meetingEnd);
@@ -114,7 +114,7 @@ export class MeetingManager {
         const createdMeeting = await this.meetingService.create(meetingDto);
 
         // Construct UserMeeting Key
-        const meetingKey = meetingDto.repeated && meetingDto.repeated !== Repeated.No ? meetingDto.repeated : DateTime.fromJSDate(new Date(createdMeeting.start_time)).toFormat('dd-MM-yyyy');
+        const meetingKey = meetingDto.repeated && meetingDto.repeated !== Repeated.No ? meetingDto.repeated : DateTime.fromJSDate(new Date(createdMeeting.startTime)).toFormat('dd-MM-yyyy');
 
         const newUserMeeting = new UserMeeting();
         // Only to satisfy null-check! If Meeting is created, Entity will always map _id to Dto! If it is not, an error will be thrown from the Service and will be handled by the Controller.
@@ -140,23 +140,23 @@ export class MeetingManager {
 
         // 2. Check Meeting Room:
         let meetingRoom;
-        if (meetingUpdateDto.meeting_room) {
+        if (meetingUpdateDto.meetingRoom) {
             // 2.1: Does meeting room exist?
-            meetingRoom = await this.meetingRoomService.findByName(meetingUpdateDto.meeting_room);
+            meetingRoom = await this.meetingRoomService.findByName(meetingUpdateDto.meetingRoom);
 
             // If new room is valid, set it to DUMMY
-            dummy.meeting_room = meetingRoom.name;
+            dummy.meetingRoom = meetingRoom.name;
         } else {
-            meetingRoom = await this.meetingRoomService.findByName(existing.meeting_room);
+            meetingRoom = await this.meetingRoomService.findByName(existing.meetingRoom);
         }
 
         // 3. Start Time:
-        if (meetingUpdateDto.start_time) {
-            const newMeetingStart = DateTime.fromJSDate(new Date(meetingUpdateDto.start_time));
+        if (meetingUpdateDto.startTime) {
+            const newMeetingStart = DateTime.fromJSDate(new Date(meetingUpdateDto.startTime));
             // 3.1: If there is also a new End Time
-            if (meetingUpdateDto.end_time) {
+            if (meetingUpdateDto.endTime) {
                 // 3.1.1: Check if start is before end
-                const newMeetingEnd = DateTime.fromJSDate(new Date(meetingUpdateDto.end_time));
+                const newMeetingEnd = DateTime.fromJSDate(new Date(meetingUpdateDto.endTime));
                 validateStartAndEndTime(newMeetingStart, newMeetingEnd);
 
                 // 3.1.2: Check if both are within the same day
@@ -179,14 +179,14 @@ export class MeetingManager {
                 validateTimesInInterval(roomInterval, newMeetingStart, existingMeetingEnd);
             }
             // If start_time is valid, set it to DUMMY
-            dummy.start_time = meetingUpdateDto.start_time;
+            dummy.startTime = meetingUpdateDto.startTime;
         }
 
         // 4. End Time:
-        if (meetingUpdateDto.end_time && !meetingUpdateDto.start_time) {
+        if (meetingUpdateDto.endTime && !meetingUpdateDto.startTime) {
             // 3.2: If there is no new End Time, perform validations with existing Start Time
-            const existingMeetingStart = DateTime.fromJSDate((new Date(existing.start_time)));
-            const newMeetingEnd = DateTime.fromJSDate((new Date(meetingUpdateDto.end_time)));
+            const existingMeetingStart = DateTime.fromJSDate((new Date(existing.startTime)));
+            const newMeetingEnd = DateTime.fromJSDate((new Date(meetingUpdateDto.endTime)));
             // 4.2.1: Check if start is before end
             validateStartAndEndTime(existingMeetingStart, newMeetingEnd);
 
@@ -198,7 +198,7 @@ export class MeetingManager {
             validateTimesInInterval(roomInterval, existingMeetingStart, newMeetingEnd);
 
             // If end_time is valid, set it to DUMMY
-            dummy.end_time = meetingUpdateDto.end_time;
+            dummy.endTime = meetingUpdateDto.endTime;
         }
 
         const creator = await this.userService.findByUsername(existing.creator);
@@ -219,7 +219,7 @@ export class MeetingManager {
             // Populate meetings to new participants!
             const userMeeting = new UserMeeting();
             userMeeting.meeting_id = id;
-            const meetingKey = existing.repeated !== Repeated.No ? existing.repeated : DateTime.fromJSDate(new Date(existing.start_time)).toFormat('dd-MM-yyyy');
+            const meetingKey = existing.repeated !== Repeated.No ? existing.repeated : DateTime.fromJSDate(new Date(existing.startTime)).toFormat('dd-MM-yyyy');
             meetingUpdateDto.participants = newParticipants;
             await this.addUserMeetingToParticipants(userMeeting, meetingUpdateDto, meetingKey);
 
@@ -253,7 +253,7 @@ export class MeetingManager {
         // We would need to amend meetings in Creator and in Participants only if the Repeat feature is changed!
         if (meetingUpdateDto.repeated && meetingUpdateDto.repeated !== existing.repeated) {
             // Construct the key of the existing meeting, so we can search by it more easily
-            const oldMeetingKey = existing.repeated !== Repeated.No ? existing.repeated : DateTime.fromJSDate(new Date(existing.start_time)).toFormat('dd-MM-yyyy');
+            const oldMeetingKey = existing.repeated !== Repeated.No ? existing.repeated : DateTime.fromJSDate(new Date(existing.startTime)).toFormat('dd-MM-yyyy');
             // Remove UserMeeting from Creator
             await this.removeUserMeeting(oldMeetingKey, creator, id);
 
@@ -266,7 +266,7 @@ export class MeetingManager {
             }
 
             // Construct the new key of the meeting, so we can add it to the proper place in the map
-            const newMeetingKey = meetingUpdateDto.repeated !== Repeated.No ? meetingUpdateDto.repeated : DateTime.fromJSDate(new Date(updated.start_time)).toFormat('dd-MM-yyyy');
+            const newMeetingKey = meetingUpdateDto.repeated !== Repeated.No ? meetingUpdateDto.repeated : DateTime.fromJSDate(new Date(updated.startTime)).toFormat('dd-MM-yyyy');
 
             const userMeeting = new UserMeeting();
             userMeeting.meeting_id = id;
@@ -287,7 +287,7 @@ export class MeetingManager {
         const deleted = await this.meetingService.delete(id);
 
         const creator = await this.userService.findByUsername(deleted.creator);
-        const oldMeetingKey = deleted.repeated !== Repeated.No ? deleted.repeated : DateTime.fromJSDate(new Date(deleted.start_time)).toFormat('dd-MM-yyyy');
+        const oldMeetingKey = deleted.repeated !== Repeated.No ? deleted.repeated : DateTime.fromJSDate(new Date(deleted.startTime)).toFormat('dd-MM-yyyy');
 
         // Only to satisfy null-check! If Meeting exists, it will always have a valid creator username stored! If not, an error will be thrown from the Service and will be handled by the Controller.
         if (deleted._id) {
@@ -336,7 +336,7 @@ export class MeetingManager {
     }
 
     private async validateCreatorMeetingsConflictNonRepeating (creator: UserDto, meetingDto: MeetingDto, meetingId: string = 'some-invalid-username!'): Promise<void> {
-        const newMeetingStart = DateTime.fromJSDate(new Date(meetingDto.start_time));
+        const newMeetingStart = DateTime.fromJSDate(new Date(meetingDto.startTime));
         for (const meetingKey in creator.meetings) {
             switch (meetingKey) {
                 // Check for conflict with daily meetings
@@ -345,7 +345,7 @@ export class MeetingManager {
                     const userMeetings = creator.meetings[Repeated.Daily].filter((meetings) => meetings.meeting_id !== meetingId);
                     for (const userMeeting of userMeetings) {
                         const meeting = await this.meetingService.findById(userMeeting.meeting_id);
-                        const existingStart = DateTime.fromJSDate(new Date(meeting.start_time));
+                        const existingStart = DateTime.fromJSDate(new Date(meeting.startTime));
                         // Check dates: Perform conflict validation only if date of new meeting is equal or greater than existing meeting
                         if (newMeetingStart >= existingStart) {
                             // Check if there is a conflict with the hours of each daily, regardless of date!
@@ -362,7 +362,7 @@ export class MeetingManager {
                     const userMeetings = creator.meetings[Repeated.Weekly].filter((meetings) => meetings.meeting_id !== meetingId);
                     for (const userMeeting of userMeetings) {
                         const meeting = await this.meetingService.findById(userMeeting.meeting_id);
-                        const existingStart = DateTime.fromJSDate(new Date(meeting.start_time));
+                        const existingStart = DateTime.fromJSDate(new Date(meeting.startTime));
                         // Check dates: Perform conflict validation only if date of new meeting is equal or greater than existing meeting
                         if (newMeetingStart >= existingStart) {
                             // Check if there is a conflict with the meetings only from the current day of each week!
@@ -379,7 +379,7 @@ export class MeetingManager {
                     const userMeetings = creator.meetings[Repeated.Monthly].filter((meetings) => meetings.meeting_id !== meetingId);
                     for (const userMeeting of userMeetings) {
                         const meeting = await this.meetingService.findById(userMeeting.meeting_id);
-                        const existingStart = DateTime.fromJSDate(new Date(meeting.start_time));
+                        const existingStart = DateTime.fromJSDate(new Date(meeting.startTime));
                         // Check dates: Perform conflict validation only if date of new meeting is equal or greater than existing meeting
                         if (newMeetingStart >= existingStart) {
                             // Check if there is a conflict with all monthly meetings for the current day!
@@ -410,13 +410,13 @@ export class MeetingManager {
     }
 
     private async validateCreatorMeetingsConflictDaily (creator: UserDto, meetingDto: MeetingDto, meetingId: string = 'some-invalid-username!'): Promise<void> {
-        const newMeetingStart = DateTime.fromJSDate(new Date(meetingDto.start_time));
+        const newMeetingStart = DateTime.fromJSDate(new Date(meetingDto.startTime));
         for (const meetingKey in creator.meetings) {
             if (meetingKey === Repeated.No || undefined) {
                 const userMeetings = creator.meetings[meetingKey].filter((meetings) => meetings.meeting_id !== meetingId);
                 for (const userMeeting of userMeetings) {
                     const meeting = await this.meetingService.findById(userMeeting.meeting_id);
-                    const existingStart = DateTime.fromJSDate(new Date(meeting.start_time));
+                    const existingStart = DateTime.fromJSDate(new Date(meeting.startTime));
                     // Check dates: Perform conflict validation only if date of new daily meeting is equal or earlier than existing non-repeated meeting
                     if (newMeetingStart <= existingStart) {
                         // Check if there is a conflict with the hours of each daily, regardless of date!
@@ -440,7 +440,7 @@ export class MeetingManager {
     }
 
     private async validateCreatorMeetingsConflictWeekly (creator: UserDto, meetingDto: MeetingDto, meetingId: string = 'some-invalid-username!'): Promise<void> {
-        const newMeetingStart = DateTime.fromJSDate(new Date(meetingDto.start_time));
+        const newMeetingStart = DateTime.fromJSDate(new Date(meetingDto.startTime));
         for (const meetingKey in creator.meetings) {
             switch (meetingKey) {
                 // Check for conflict with daily meetings
@@ -489,7 +489,7 @@ export class MeetingManager {
                     const userMeetings = creator.meetings[meetingKey].filter((meetings) => meetings.meeting_id !== meetingId);
                     for (const userMeeting of userMeetings) {
                         const meeting = await this.meetingService.findById(userMeeting.meeting_id);
-                        const existingStart = DateTime.fromJSDate(new Date(meeting.start_time));
+                        const existingStart = DateTime.fromJSDate(new Date(meeting.startTime));
                         // Check dates: Perform conflict validation only if date of new weekly meeting is equal or earlier than existing non-repeated meeting
                         if (newMeetingStart <= existingStart) {
                             if (hasConflictInHoursWeekly(meetingDto, meeting)) {
@@ -504,7 +504,7 @@ export class MeetingManager {
     }
 
     private async validateCreatorMeetingsConflictMonthly (creator: UserDto, meetingDto: MeetingDto, meetingId: string = 'some-invalid-username!'): Promise<void> {
-        const newMeetingStart = DateTime.fromJSDate(new Date(meetingDto.start_time));
+        const newMeetingStart = DateTime.fromJSDate(new Date(meetingDto.startTime));
         for (const meetingKey in creator.meetings) {
             switch (meetingKey) {
                 // Check for conflict with daily meetings
@@ -554,7 +554,7 @@ export class MeetingManager {
                     const userMeetings = creator.meetings[meetingKey].filter((meetings) => meetings.meeting_id !== meetingId);
                     for (const userMeeting of userMeetings) {
                         const meeting = await this.meetingService.findById(userMeeting.meeting_id);
-                        const existingStart = DateTime.fromJSDate(new Date(meeting.start_time));
+                        const existingStart = DateTime.fromJSDate(new Date(meeting.startTime));
                         // Check dates: Perform conflict validation only if date of new weekly meeting is equal or earlier than existing non-repeated meeting
                         if (newMeetingStart <= existingStart) {
                             if (hasConflictInHoursMonthly(meetingDto, meeting)) {

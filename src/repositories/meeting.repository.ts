@@ -15,15 +15,15 @@ const meetingSchema = new Schema<MeetingEntity>({
             required: true
         }
     },
-    meeting_room: {
+    meetingRoom: {
         type: String,
         required: true
     },
-    start_time: {
+    startTime: {
         type: Date,
         required: true
     },
-    end_time: {
+    endTime: {
         type: Date,
         required: true
     },

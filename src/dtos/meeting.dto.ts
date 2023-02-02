@@ -28,19 +28,19 @@ export class MeetingDto {
     @IsNotEmpty({ message: 'Meeting room is required!' })
     @Expose()
     @AutoMap()
-        meeting_room!: string;
+        meetingRoom!: string;
 
     @IsDateString(undefined, { message: 'Meeting start time must of format: YYYY-MM-DDTHH:MM:SS+TIMZ!' })
     @IsNotEmpty({ message: 'Meeting start time is required!' })
     @Expose()
     @AutoMap()
-        start_time!: Date;
+        startTime!: Date;
 
     @IsDateString(undefined, { message: 'Meeting end time must of format: YYYY-MM-DDTHH:MM:SS+TIMZ!' })
     @IsNotEmpty({ message: 'Meeting end time is required!' })
     @Expose()
     @AutoMap()
-        end_time!: Date;
+        endTime!: Date;
 
     @IsOptional()
     @Expose()
@@ -63,19 +63,19 @@ export class MeetingUpdateDto {
     @IsOptional()
     @Expose()
     @AutoMap()
-        meeting_room?: string;
+        meetingRoom?: string;
 
     @IsDateString(undefined, { message: 'Meeting start time must of format: YYYY-MM-DDTHH:MM:SS+TIMZ!' })
     @IsOptional()
     @Expose()
     @AutoMap()
-        start_time?: Date;
+        startTime?: Date;
 
     @IsDateString(undefined, { message: 'Meeting end time must of format: YYYY-MM-DDTHH:MM:SS+TIMZ!' })
     @IsOptional()
     @Expose()
     @AutoMap()
-        end_time?: Date;
+        endTime?: Date;
 
     @IsOptional()
     @Expose()

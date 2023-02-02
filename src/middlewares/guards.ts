@@ -38,13 +38,17 @@ export function isOwner () {
 
 export function isCreator () {
     return async (req: Request<PathParamMeetingDto, {}, MeetingUpdateDto>, res: Response, next: NextFunction) => {
-        const meetingId = req.params._id;
-        const meeting = await meetingService.findById(meetingId);
-        const ownsMeeting = meeting.creator === req.user?.username;
-        if (req.user && ownsMeeting) {
-            next();
-        } else {
-            next(createHttpError.Unauthorized('You are not authorised!'));
+        try {
+            const meetingId = req.params._id;
+            const meeting = await meetingService.findById(meetingId);
+            const ownsMeeting = meeting.creator === req.user?.username;
+            if (req.user && ownsMeeting) {
+                next();
+            } else {
+                next(createHttpError.Unauthorized('You are not authorised!'));
+            }
+        } catch (err: unknown) {
+            next(err);
         }
     };
 }
