@@ -236,7 +236,7 @@ export class UserManager {
         return createdMeeting;
     }
 
-    async update (id: string, meetingUpdateDto: MeetingUpdateDto): Promise<MeetingDto> {
+    async updateMeeting (id: string, meetingUpdateDto: MeetingUpdateDto): Promise<MeetingDto> {
     // 1. Does meeting exist?
         const existing = await this.meetingService.findById(id);
 

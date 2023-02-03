@@ -11,7 +11,7 @@ import * as dotenv from 'dotenv';
 import * as process from 'process';
 import { plainToClass } from 'class-transformer';
 import { validateDto } from '../handlers/validate-request.handler';
-import { MeetingDto, type ReqQueryFilterMeetings } from '../dtos/meeting.dto';
+import { MeetingDto, MeetingUpdateDto, type ReqQueryFilterMeetings } from '../dtos/meeting.dto';
 import { userManager, type UserManager } from '../managers/user.manager';
 
 dotenv.config();
@@ -103,23 +103,18 @@ export class UserController {
         }
     }
 
-    // async updateById (req: Request<PathParamMeetingDto, {}, MeetingUpdateDto>, res: Response, next: NextFunction): Promise<Response | void> {
-    //     // Transform request body to MeetingDto Class
-    //     const meetingUpdateDto = plainToClass(MeetingUpdateDto, req.body, { excludeExtraneousValues: true });
-    //
-    //     try {
-    //         // Validate request params ID
-    //         const id: string = req.params._id.trim();
-    //         if (!id) {
-    //             throw createHttpError.BadRequest('Meeting ID missing!');
-    //         }
-    //         await validateRequestBody(meetingUpdateDto);
-    //         const updatedMeeting = await this.meetingManager.update(id, meetingUpdateDto);
-    //         return res.status(200).json(updatedMeeting);
-    //     } catch (err: unknown) {
-    //         next(err);
-    //     }
-    // }
+    async updateMeeting (req: Request<PathParamUserMeetingDto, {}, MeetingUpdateDto>, res: Response, next: NextFunction): Promise<Response | void> {
+        // Transform request body to MeetingDto Class
+        const meetingUpdateDto = plainToClass(MeetingUpdateDto, req.body, { excludeExtraneousValues: true });
+
+        try {
+            await validateDto(meetingUpdateDto);
+            const updatedMeeting = await this.userManager.updateMeeting(req.params.meetingId, meetingUpdateDto);
+            return res.status(200).json(updatedMeeting);
+        } catch (err: unknown) {
+            next(err);
+        }
+    }
 
     async deleteById (req: Request<PathParamUserMeetingDto>, res: Response, next: NextFunction): Promise<Response | void> {
         try {

@@ -15,4 +15,5 @@ router.get('/:username/meetings', isOwner(), async (req, res, next) => await use
 
 router.post('/:username/meetings', isOwner(), async (req, res, next) => await userController.createMeeting(req, res, next));
 router.delete('/:username/meetings/:meetingId', isCreator(), async (req, res, next) => await userController.deleteById(req, res, next));
+router.put('/:username/meetings/:meetingId', isCreator(), async (req, res, next) => await userController.updateMeeting(req, res, next));
 // router.patch('/:meetingId', async (req, res, next) => await userController.updateStatus(req, res, next));
