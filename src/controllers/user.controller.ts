@@ -11,9 +11,8 @@ import * as dotenv from 'dotenv';
 import * as process from 'process';
 import { plainToClass } from 'class-transformer';
 import { validateDto } from '../handlers/validate-request.handler';
-import { MeetingDto, MeetingUpdateDto, type ReqQueryFilterMeetings } from '../dtos/meeting.dto';
+import { MeetingDto, MeetingUpdateDto, type ReqQueryFilterMeetings, StatusUpdateDto } from '../dtos/meeting.dto';
 import { userManager, type UserManager } from '../managers/user.manager';
-import createHttpError from 'http-errors';
 
 dotenv.config();
 
@@ -92,9 +91,6 @@ export class UserController {
     async getMeeting (req: Request<PathParamUserMeetingDto>, res: Response, next: NextFunction): Promise<Response | void> {
         try {
             const meeting = await this.userManager.getMeeting(req.params.meetingId);
-            if (!this.isInvited(req.params.username, meeting)) {
-                throw createHttpError.Unauthorized('You cannot access a meeting you are not invited to!');
-            }
             return res.status(200).json(meeting);
         } catch (err: unknown) {
             next(err);
@@ -138,46 +134,18 @@ export class UserController {
         }
     }
 
-    // async updateStatus (req: Request<PathParamUpdateStatusDto, {}, StatusUpdateDto>, res: Response, next: NextFunction): Promise<Response | void> {
-    //     // Transform request body to MeetingDto Class
-    //     const pathParams = plainToClass(PathParamUpdateStatusDto, req.params);
-    //     const statusUpdateDto = plainToClass(StatusUpdateDto, req.body, { excludeExtraneousValues: true });
-    //
-    //     try {
-    //         // Validate request params ID and request body
-    //         await Promise.all([validateDto(pathParams), validateDto(statusUpdateDto)]);
-    //         // Pass userId of Logged user to service
-    //         if (!req.user) {
-    //             throw createHttpError.Unauthorized('Please, log in!');
-    //         }
-    //         const user = await this.userService.findById(req.user._id);
-    //         let userMeeting;
-    //         for (const meetingsKey in user.meetings) {
-    //             const found = user.meetings[meetingsKey].find((usm) => usm.meeting_id === pathParams.meetingId);
-    //             if (found) {
-    //                 userMeeting = found;
-    //                 break;
-    //             }
-    //         }
-    //         if (!userMeeting) {
-    //             throw createHttpError.NotFound('No such user meeting found!');
-    //         }
-    //
-    //         // TODO: Check for conflict meetings when trying to answer "YES"!
-    //
-    //         userMeeting.answered = statusUpdateDto.answered;
-    //         const updated = await this.userService.update(req.user._id, user);
-    //         return res.status(200).json(updated);
-    //     } catch (err: unknown) {
-    //         next(err);
-    //     }
-    // }
+    async updateStatus (req: Request<PathParamUserMeetingDto, {}, StatusUpdateDto>, res: Response, next: NextFunction): Promise<Response | void> {
+        // Transform request body to Status Update Dto
+        const statusUpdateDto = plainToClass(StatusUpdateDto, req.body, { excludeExtraneousValues: true });
+        try {
+            // Validate request params ID and request body
+            await validateDto(statusUpdateDto);
 
-    isInvited (username: string, meeting: MeetingDto): boolean {
-        if (meeting.creator === username) {
-            return true;
+            const updated = await this.userManager.updateStatus(req.params.username, req.params.meetingId, statusUpdateDto);
+            return res.status(200).json(updated);
+        } catch (err: unknown) {
+            next(err);
         }
-        return !!(meeting.participants?.includes(username));
     }
 }
 

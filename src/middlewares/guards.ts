@@ -4,6 +4,14 @@ import { PathParamUserDto, PathParamUserMeetingDto } from '../dtos/user.dto';
 import createHttpError from 'http-errors';
 import { plainToClass } from 'class-transformer';
 import { validateDto } from '../handlers/validate-request.handler';
+import { type MeetingDto } from '../dtos/meeting.dto';
+
+function userExistsInMeeteing (username: string, meeting: MeetingDto): boolean {
+    if (meeting.creator === username) {
+        return true;
+    }
+    return !!(meeting.participants?.includes(username));
+}
 
 export function isLogged () {
     return (req: Request, res: Response, next: NextFunction) => {
@@ -25,20 +33,39 @@ export function isGuest () {
     };
 }
 
-export function isOwner () {
+export function isPathOwner () {
     return async (req: Request<PathParamUserMeetingDto>, res: Response, next: NextFunction) => {
         try {
             // Transform request params to class
             const pathParams = plainToClass(PathParamUserDto, req.params);
             // Validate request params object
             await validateDto(pathParams);
-
             const username = req.params.username;
             const owns = username === req.user?.username;
             if (req.user && owns) {
                 next();
             } else {
-                next(createHttpError.Unauthorized('You are not authorised!'));
+                next(createHttpError.Unauthorized('You are not authorised to access this user resources!'));
+            }
+        } catch (err: unknown) {
+            next(err);
+        }
+    };
+}
+
+export function hasMeeting () {
+    return async (req: Request<PathParamUserMeetingDto>, res: Response, next: NextFunction) => {
+        try {
+            // Transform request params to class
+            const pathParams = plainToClass(PathParamUserMeetingDto, req.params);
+            // Validate request params object
+            await validateDto(pathParams);
+            const { username, meetingId } = pathParams;
+            const meeting = await meetingService.findById(meetingId);
+            if (userExistsInMeeteing(username, meeting)) {
+                next();
+            } else {
+                next(createHttpError.Unauthorized('You can access only meetings you are a part of!'));
             }
         } catch (err: unknown) {
             next(err);
@@ -53,11 +80,8 @@ export function isCreator () {
             const pathParams = plainToClass(PathParamUserMeetingDto, req.params);
             // Validate request params object
             await validateDto(pathParams);
-            const { meetingId, username } = req.params;
-            const owns = username === req.user?.username;
-            const meeting = await meetingService.findById(meetingId);
-            const ownsMeeting = meeting.creator === req.user?.username;
-            if (req.user && owns && ownsMeeting) {
+            const meeting = await meetingService.findById(req.params.meetingId);
+            if (meeting.creator === req.user?.username) {
                 next();
             } else {
                 next(createHttpError.Unauthorized('You are not authorised!'));

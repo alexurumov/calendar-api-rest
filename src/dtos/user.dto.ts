@@ -92,10 +92,3 @@ export class PathParamUserMeetingDto extends PathParamUserDto {
     @Expose()
         meetingId!: string;
 }
-
-// TODO: Refactor!
-export class PathParamUpdateStatusDto {
-    @IsNotEmpty({ message: 'Meeting ID is required for update status' })
-    @Expose()
-        meetingId!: string;
-}
