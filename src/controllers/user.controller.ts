@@ -13,6 +13,7 @@ import { plainToClass } from 'class-transformer';
 import { validateDto } from '../handlers/validate-request.handler';
 import { MeetingDto, MeetingUpdateDto, type ReqQueryFilterMeetings } from '../dtos/meeting.dto';
 import { userManager, type UserManager } from '../managers/user.manager';
+import createHttpError from 'http-errors';
 
 dotenv.config();
 
@@ -83,6 +84,18 @@ export class UserController {
         try {
             const meetings = await this.userManager.getAllMeetings(req.user!._id, req.query.answered, req.query.period);
             return res.status(200).json(meetings);
+        } catch (err: unknown) {
+            next(err);
+        }
+    }
+
+    async getMeeting (req: Request<PathParamUserMeetingDto>, res: Response, next: NextFunction): Promise<Response | void> {
+        try {
+            const meeting = await this.userManager.getMeeting(req.params.meetingId);
+            if (!this.isInvited(req.params.username, meeting)) {
+                throw createHttpError.Unauthorized('You cannot access a meeting you are not invited to!');
+            }
+            return res.status(200).json(meeting);
         } catch (err: unknown) {
             next(err);
         }
@@ -159,6 +172,13 @@ export class UserController {
     //         next(err);
     //     }
     // }
+
+    isInvited (username: string, meeting: MeetingDto): boolean {
+        if (meeting.creator === username) {
+            return true;
+        }
+        return !!(meeting.participants?.includes(username));
+    }
 }
 
 export const userController = new UserController(userService, userManager);

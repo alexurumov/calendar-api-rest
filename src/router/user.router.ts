@@ -13,6 +13,8 @@ router.put('/:username', isOwner(), async (req, res, next) => { await userContro
 
 router.get('/:username/meetings', isOwner(), async (req, res, next) => await userController.getAllMeetings(req, res, next));
 
+router.get('/:username/meetings/:meetingId', isOwner(), async (req, res, next) => await userController.getMeeting(req, res, next));
+
 router.post('/:username/meetings', isOwner(), async (req, res, next) => await userController.createMeeting(req, res, next));
 router.delete('/:username/meetings/:meetingId', isCreator(), async (req, res, next) => await userController.deleteById(req, res, next));
 router.put('/:username/meetings/:meetingId', isCreator(), async (req, res, next) => await userController.updateMeeting(req, res, next));

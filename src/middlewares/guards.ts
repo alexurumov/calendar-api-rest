@@ -26,7 +26,7 @@ export function isGuest () {
 }
 
 export function isOwner () {
-    return async (req: Request<PathParamUserDto>, res: Response, next: NextFunction) => {
+    return async (req: Request<PathParamUserMeetingDto>, res: Response, next: NextFunction) => {
         try {
             // Transform request params to class
             const pathParams = plainToClass(PathParamUserDto, req.params);

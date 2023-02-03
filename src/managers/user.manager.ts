@@ -169,6 +169,10 @@ export class UserManager {
         return userMeetings;
     }
 
+    async getMeeting (meetingId: string): Promise<MeetingDto> {
+        return await this.meetingService.findById(meetingId);
+    }
+
     async createMeeting (meetingDto: MeetingDto): Promise<MeetingDto> {
         // Is Creator existing? If yes => store in variable and use below; If no => userService method will throw error, which will be handled by Controller
         const creator = await this.userService.findByUsername(meetingDto.creator);
