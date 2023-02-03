@@ -169,9 +169,9 @@ export class UserManager {
         return userMeetings;
     }
 
-    async create (meetingDto: MeetingDto): Promise<MeetingDto> {
+    async createMeeting (meetingDto: MeetingDto): Promise<MeetingDto> {
         // Is Creator existing? If yes => store in variable and use below; If no => userService method will throw error, which will be handled by Controller
-        const creator = await this.userService.findById(meetingDto.creator);
+        const creator = await this.userService.findByUsername(meetingDto.creator);
 
         // Is Meeting Room existing? If yes => store in variable and use below; If no => meetingRoomService method will throw error, which will be handled by Controller
         const room = await this.meetingRoomService.findByName(meetingDto.meetingRoom);
@@ -414,7 +414,7 @@ export class UserManager {
                 }
                 participant.meetings[meetingKey].push(newUserMeeting);
                 if (participant._id) {
-                    await this.userService.update(participant._id, participant);
+                    await this.userService.update(participant.username, participant);
                 }
             }
         }
@@ -429,7 +429,7 @@ export class UserManager {
         }
         creator.meetings[meetingKey].push(newUserMeeting);
 
-        await this.userService.update(creator._id!, creator);
+        await this.userService.update(creator.username, creator);
     }
 
     private async validateCreatorMeetingsConflictNonRepeating (creator: UserDto, meetingDto: MeetingDto, meetingId: string = 'some-invalid-username!'): Promise<void> {
@@ -694,7 +694,7 @@ export class UserManager {
     private async removeUserMeeting (oldMeetingKey: string, user: UserDto, id: string): Promise<void> {
     // Remove the meeting from Creator's Map
         user.meetings[oldMeetingKey] = user.meetings[oldMeetingKey].filter((meetings) => meetings.meeting_id !== id);
-        await this.userService.update(user._id!, user);
+        await this.userService.update(user.username, user);
     }
 }
 

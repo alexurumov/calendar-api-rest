@@ -1,11 +1,11 @@
 import { type NextFunction, type Request, type Response } from 'express';
 import { userService, type UserService } from '../services/user.service';
-import { PathParamUserDto, UserDto, UserRegisterDto, UserUpdateDto } from '../dtos/user.dto';
+import { type PathParamUserDto, UserDto, UserRegisterDto, UserUpdateDto } from '../dtos/user.dto';
 import * as dotenv from 'dotenv';
 import * as process from 'process';
 import { plainToClass } from 'class-transformer';
 import { validateDto } from '../handlers/validate-request.handler';
-import { type ReqQueryFilterMeetings } from '../dtos/meeting.dto';
+import { MeetingDto, type ReqQueryFilterMeetings } from '../dtos/meeting.dto';
 import { userManager, type UserManager } from '../managers/user.manager';
 
 dotenv.config();
@@ -31,7 +31,7 @@ export class UserController {
     }
 
     async login (req: Request<{}, {}, UserDto>, res: Response, next: NextFunction): Promise<void> {
-    // Transform req.body to RegisterUserDto
+        // Transform req.body to RegisterUserDto
         const userLoginDto = plainToClass(UserDto, req.body, { excludeExtraneousValues: true });
 
         try {
@@ -61,13 +61,12 @@ export class UserController {
 
     async updateById (req: Request<PathParamUserDto, {}, UserUpdateDto>, res: Response, next: NextFunction): Promise<Response | void> {
         // Transform request body to UserUpdateDto Class
-        const params = plainToClass(PathParamUserDto, req.params);
         const userDto = plainToClass(UserUpdateDto, req.body, { excludeExtraneousValues: true });
 
         try {
-            // Validate params and request body dto
-            await Promise.all([validateDto(params), validateDto(userDto)]);
-            const updated = await this.userService.update(params.username, userDto);
+            // Validate request body dto
+            await validateDto(userDto);
+            const updated = await this.userService.update(req.params.username, userDto);
             return res.status(200).json(updated);
         } catch (err: unknown) {
             next(err);
@@ -83,24 +82,20 @@ export class UserController {
         }
     }
 
-    // async create (req: Request<{}, {}, MeetingDto>, res: Response, next: NextFunction): Promise<Response | void> {
-    //     // Transform request body to MeetingDto Class
-    //     const meetingDto = plainToClass(MeetingDto, req.body, { excludeExtraneousValues: true });
-    //
-    //     try {
-    //         const userId = req.user?._id;
-    //         if (!userId) {
-    //             throw createHttpError.Unauthorized('You must log in to create a meeting!');
-    //         }
-    //         // Validate MeetingDto
-    //         await validateRequestBody(meetingDto);
-    //         meetingDto.creator = userId;
-    //         const createdMeeting = await this.meetingManager.create(meetingDto);
-    //         return res.status(201).json(createdMeeting);
-    //     } catch (err: unknown) {
-    //         next(err);
-    //     }
-    // }
+    async createMeeting (req: Request<PathParamUserDto, {}, MeetingDto>, res: Response, next: NextFunction): Promise<Response | void> {
+        // Transform request body to MeetingDto Class
+        const meetingDto = plainToClass(MeetingDto, req.body, { excludeExtraneousValues: true });
+
+        try {
+            // Validate MeetingDto
+            await validateDto(meetingDto);
+            meetingDto.creator = req.params.username;
+            const createdMeeting = await this.userManager.createMeeting(meetingDto);
+            return res.status(201).json(createdMeeting);
+        } catch (err: unknown) {
+            next(err);
+        }
+    }
 
     // async updateById (req: Request<PathParamMeetingDto, {}, MeetingUpdateDto>, res: Response, next: NextFunction): Promise<Response | void> {
     //     // Transform request body to MeetingDto Class
