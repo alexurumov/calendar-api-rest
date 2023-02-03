@@ -55,6 +55,64 @@ function validateWithinSameDay (meetingStart: DateTime, meetingEnd: DateTime): v
     }
 }
 
+function isUserMeetingFromToday (userMeeting: UserMeetingFull): boolean {
+    switch (userMeeting.repeated) {
+        case Repeated.Daily: {
+            // Check if daily has already begun
+            const userMeetingStart = DateTime.fromJSDate(new Date(userMeeting.startTime));
+            const todayEnd = DateTime.now().endOf('day');
+            return userMeetingStart <= todayEnd;
+        }
+        case Repeated.Weekly: {
+            // Check if weekly matches the weekday
+            const userMeetingWeekDay = DateTime.fromJSDate(new Date(userMeeting.startTime)).weekday;
+            const todayWeekDay = DateTime.now().weekday;
+
+            // Check if weekly has already begun
+            const meetingStart = DateTime.fromJSDate(new Date(userMeeting.startTime));
+            const todayEnd = DateTime.now().endOf('day');
+
+            return userMeetingWeekDay === todayWeekDay && meetingStart <= todayEnd;
+        }
+        case Repeated.Monthly: {
+            // Check if monthly matches the weekday
+            const userMeetingMonthDay = DateTime.fromJSDate(new Date(userMeeting.startTime)).get('day');
+            const todayMonthDay = DateTime.now().get('day');
+
+            // Check if monthly has already begun
+            const meetingStart = DateTime.fromJSDate(new Date(userMeeting.startTime));
+            const todayEnd = DateTime.now().endOf('day');
+
+            return userMeetingMonthDay === todayMonthDay && meetingStart <= todayEnd;
+        }
+        default:{
+            // Check if non-repeating meeting is for today
+            const userMeetingStart = DateTime.fromJSDate(new Date(userMeeting.startTime));
+            const todayStart = DateTime.now().startOf('day');
+            const todayEnd = DateTime.now().endOf('day');
+            const todayInterval = Interval.fromDateTimes(todayStart, todayEnd);
+
+            return todayInterval.contains(userMeetingStart);
+        }
+    }
+}
+
+function isUserMeetingInPast (userMeeting: UserMeetingFull): boolean {
+    // Check if end time is before the start of today
+    const userMeetingEnd = DateTime.fromJSDate(new Date(userMeeting.endTime));
+    const todayStart = DateTime.now().startOf('day');
+
+    return userMeetingEnd < todayStart;
+}
+
+function isUserMeetingInFuture (userMeeting: UserMeetingFull): boolean {
+    // Check if start time is after the end of today
+    const userMeetingStart = DateTime.fromJSDate(new Date(userMeeting.startTime));
+    const todayEnd = DateTime.now().endOf('day');
+
+    return userMeetingStart > todayEnd;
+}
+
 export class MeetingManager {
     constructor (
         private readonly meetingService: MeetingService,
@@ -92,64 +150,6 @@ export class MeetingManager {
             }
         }
 
-        function isUserMeetingFromToday (userMeeting: UserMeetingFull): boolean {
-            switch (userMeeting.repeated) {
-                case Repeated.Daily: {
-                    // Check if daily has already begun
-                    const userMeetingStart = DateTime.fromJSDate(new Date(userMeeting.startTime));
-                    const todayEnd = DateTime.now().endOf('day');
-                    return userMeetingStart <= todayEnd;
-                }
-                case Repeated.Weekly: {
-                    // Check if weekly matches the weekday
-                    const userMeetingWeekDay = DateTime.fromJSDate(new Date(userMeeting.startTime)).weekday;
-                    const todayWeekDay = DateTime.now().weekday;
-
-                    // Check if weekly has already begun
-                    const meetingStart = DateTime.fromJSDate(new Date(userMeeting.startTime));
-                    const todayEnd = DateTime.now().endOf('day');
-
-                    return userMeetingWeekDay === todayWeekDay && meetingStart <= todayEnd;
-                }
-                case Repeated.Monthly: {
-                    // Check if monthly matches the weekday
-                    const userMeetingMonthDay = DateTime.fromJSDate(new Date(userMeeting.startTime)).get('day');
-                    const todayMonthDay = DateTime.now().get('day');
-
-                    // Check if monthly has already begun
-                    const meetingStart = DateTime.fromJSDate(new Date(userMeeting.startTime));
-                    const todayEnd = DateTime.now().endOf('day');
-
-                    return userMeetingMonthDay === todayMonthDay && meetingStart <= todayEnd;
-                }
-                default:{
-                    // Check if non-repeating meeting is for today
-                    const userMeetingStart = DateTime.fromJSDate(new Date(userMeeting.startTime));
-                    const todayStart = DateTime.now().startOf('day');
-                    const todayEnd = DateTime.now().endOf('day');
-                    const todayInterval = Interval.fromDateTimes(todayStart, todayEnd);
-
-                    return todayInterval.contains(userMeetingStart);
-                }
-            }
-        }
-
-        function isUserMeetingInPast (userMeeting: UserMeetingFull): boolean {
-            // Check if end time is before the start of today
-            const userMeetingEnd = DateTime.fromJSDate(new Date(userMeeting.endTime));
-            const todayStart = DateTime.now().startOf('day');
-
-            return userMeetingEnd < todayStart;
-        }
-
-        function isUserMeetingInFuture (userMeeting: UserMeetingFull): boolean {
-            // Check if start time is after the end of today
-            const userMeetingStart = DateTime.fromJSDate(new Date(userMeeting.startTime));
-            const todayEnd = DateTime.now().endOf('day');
-
-            return userMeetingStart > todayEnd;
-        }
-
         if (period) {
             if (!Object.values(Period as Object).includes(period)) {
                 throw createHttpError.BadRequest('Period filter must be one of the following: today | past | future');
@@ -170,7 +170,7 @@ export class MeetingManager {
     }
 
     async create (meetingDto: MeetingDto): Promise<MeetingDto> {
-    // Is Creator existing? If yes => store in variable and use below; If no => userService method will throw error, which will be handled by Controller
+        // Is Creator existing? If yes => store in variable and use below; If no => userService method will throw error, which will be handled by Controller
         const creator = await this.userService.findById(meetingDto.creator);
 
         // Is Meeting Room existing? If yes => store in variable and use below; If no => meetingRoomService method will throw error, which will be handled by Controller
@@ -224,10 +224,8 @@ export class MeetingManager {
         const meetingKey = meetingDto.repeated && meetingDto.repeated !== Repeated.No ? meetingDto.repeated : DateTime.fromJSDate(new Date(createdMeeting.startTime)).toFormat('dd-MM-yyyy');
 
         const newUserMeeting = new UserMeeting();
-        // Only to satisfy null-check! If Meeting is created, Entity will always map _id to Dto! If it is not, an error will be thrown from the Service and will be handled by the Controller.
-        if (createdMeeting._id) {
-            newUserMeeting.meeting_id = createdMeeting._id;
-        }
+
+        newUserMeeting.meeting_id = createdMeeting._id!;
 
         // Add meeting to creator
         await this.addUserMeetingToCreator(newUserMeeting, creator, meetingKey);
@@ -378,12 +376,9 @@ export class MeetingManager {
             const userMeeting = new UserMeeting();
             userMeeting.meeting_id = id;
 
-            // Only to satisfy null-check! UserMeeting will never be undefined!
-            if (userMeeting) {
-                // Append the UserMeeting to the proper place in Creator's Map
-                await this.addUserMeetingToCreator(userMeeting, creator, newMeetingKey);
-                await this.addUserMeetingToParticipants(userMeeting, updated, newMeetingKey);
-            }
+            // Append the UserMeeting to the proper place in Creator's Map
+            await this.addUserMeetingToCreator(userMeeting, creator, newMeetingKey);
+            await this.addUserMeetingToParticipants(userMeeting, updated, newMeetingKey);
         }
 
         return updated;
@@ -396,17 +391,14 @@ export class MeetingManager {
         const creator = await this.userService.findByUsername(deleted.creator);
         const oldMeetingKey = deleted.repeated !== Repeated.No ? deleted.repeated : DateTime.fromJSDate(new Date(deleted.startTime)).toFormat('dd-MM-yyyy');
 
-        // Only to satisfy null-check! If Meeting exists, it will always have a valid creator username stored! If not, an error will be thrown from the Service and will be handled by the Controller.
-        if (deleted._id) {
-            // Remove UserMeetings from creator
-            await this.removeUserMeeting(oldMeetingKey, creator, deleted._id);
+        // Remove UserMeetings from creator
+        await this.removeUserMeeting(oldMeetingKey, creator, deleted._id!);
 
-            // Remove UserMeetings from participants
-            if (deleted.participants) {
-                for (const participantUsername of deleted.participants) {
-                    const participant = await this.userService.findByUsername(participantUsername);
-                    await this.removeUserMeeting(oldMeetingKey, participant, deleted._id);
-                }
+        // Remove UserMeetings from participants
+        if (deleted.participants) {
+            for (const participantUsername of deleted.participants) {
+                const participant = await this.userService.findByUsername(participantUsername);
+                await this.removeUserMeeting(oldMeetingKey, participant, deleted._id!);
             }
         }
         return deleted;
@@ -431,15 +423,13 @@ export class MeetingManager {
     private async addUserMeetingToCreator (newUserMeeting: UserMeeting, creator: UserDto, meetingKey: string): Promise<void> {
         newUserMeeting.answered = Answered.Yes;
 
-        // Only to satisfy null-check! If Creator exists, Entity will always map _id to Dto! If not, an error will be thrown from the Service and will be handled by the Controller.
-        if (creator._id) {
-            // Check if meetingKey already exists! If yes, push to array; If not => create new key
-            if (!Object.keys(creator.meetings as Object).includes(meetingKey)) {
-                creator.meetings[meetingKey] = new Array<UserMeeting>();
-            }
-            creator.meetings[meetingKey].push(newUserMeeting);
-            await this.userService.update(creator._id, creator);
+        // Check if meetingKey already exists! If yes, push to array; If not => create new key
+        if (!Object.keys(creator.meetings as Object).includes(meetingKey)) {
+            creator.meetings[meetingKey] = new Array<UserMeeting>();
         }
+        creator.meetings[meetingKey].push(newUserMeeting);
+
+        await this.userService.update(creator._id!, creator);
     }
 
     private async validateCreatorMeetingsConflictNonRepeating (creator: UserDto, meetingDto: MeetingDto, meetingId: string = 'some-invalid-username!'): Promise<void> {
@@ -704,10 +694,7 @@ export class MeetingManager {
     private async removeUserMeeting (oldMeetingKey: string, user: UserDto, id: string): Promise<void> {
     // Remove the meeting from Creator's Map
         user.meetings[oldMeetingKey] = user.meetings[oldMeetingKey].filter((meetings) => meetings.meeting_id !== id);
-        // Only to satisfy null check! Creator ID will always be present!
-        if (user._id) {
-            await this.userService.update(user._id, user);
-        }
+        await this.userService.update(user._id!, user);
     }
 }
 
