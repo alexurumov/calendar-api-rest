@@ -384,7 +384,7 @@ export class UserManager {
         return updated;
     }
 
-    async delete (id: string): Promise<MeetingDto> {
+    async deleteMeeting (id: string): Promise<MeetingDto> {
         // Delete meeting from meetings
         const deleted = await this.meetingService.delete(id);
 

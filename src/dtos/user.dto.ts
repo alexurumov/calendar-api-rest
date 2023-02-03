@@ -87,6 +87,12 @@ export class PathParamUserDto implements Required<Pick<UserDto, 'username'>> {
         username!: string;
 }
 
+export class PathParamUserMeetingDto extends PathParamUserDto {
+    @IsNotEmpty({ message: 'Meeting ID is required for update status' })
+    @Expose()
+        meetingId!: string;
+}
+
 // TODO: Refactor!
 export class PathParamUpdateStatusDto {
     @IsNotEmpty({ message: 'Meeting ID is required for update status' })

@@ -1,6 +1,12 @@
 import { type NextFunction, type Request, type Response } from 'express';
 import { userService, type UserService } from '../services/user.service';
-import { type PathParamUserDto, UserDto, UserRegisterDto, UserUpdateDto } from '../dtos/user.dto';
+import {
+    type PathParamUserDto,
+    type PathParamUserMeetingDto,
+    UserDto,
+    UserRegisterDto,
+    UserUpdateDto
+} from '../dtos/user.dto';
 import * as dotenv from 'dotenv';
 import * as process from 'process';
 import { plainToClass } from 'class-transformer';
@@ -115,19 +121,14 @@ export class UserController {
     //     }
     // }
 
-    // async deleteById (req: Request<PathParamMeetingDto>, res: Response, next: NextFunction): Promise<Response | void> {
-    //     try {
-    //         // Validate request params ID
-    //         const id = req.params._id.trim();
-    //         if (!id) {
-    //             throw createHttpError.BadRequest('Meeting ID missing!');
-    //         }
-    //         const deletedMeeting = await this.meetingManager.delete(id);
-    //         return res.status(200).json(deletedMeeting);
-    //     } catch (err: unknown) {
-    //         next(err);
-    //     }
-    // }
+    async deleteById (req: Request<PathParamUserMeetingDto>, res: Response, next: NextFunction): Promise<Response | void> {
+        try {
+            const deletedMeeting = await this.userManager.deleteMeeting(req.params.meetingId);
+            return res.status(200).json(deletedMeeting);
+        } catch (err: unknown) {
+            next(err);
+        }
+    }
 
     // async updateStatus (req: Request<PathParamUpdateStatusDto, {}, StatusUpdateDto>, res: Response, next: NextFunction): Promise<Response | void> {
     //     // Transform request body to MeetingDto Class

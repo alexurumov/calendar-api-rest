@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { userController } from '../controllers/user.controller';
 import { createToken } from '../middlewares/token.middleware';
-import { isGuest, isLogged, isOwner } from '../middlewares/guards';
+import { isCreator, isGuest, isLogged, isOwner } from '../middlewares/guards';
 
 export const router = Router();
 
@@ -14,5 +14,5 @@ router.put('/:username', isOwner(), async (req, res, next) => { await userContro
 router.get('/:username/meetings', isOwner(), async (req, res, next) => await userController.getAllMeetings(req, res, next));
 
 router.post('/:username/meetings', isOwner(), async (req, res, next) => await userController.createMeeting(req, res, next));
-// router.delete('/:_id', isCreator(), async (req, res, next) => await meetingController.deleteById(req, res, next));
+router.delete('/:username/meetings/:meetingId', isCreator(), async (req, res, next) => await userController.deleteById(req, res, next));
 // router.patch('/:meetingId', async (req, res, next) => await userController.updateStatus(req, res, next));

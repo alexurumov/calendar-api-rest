@@ -1,6 +1,6 @@
 import { type NextFunction, type Request, type Response } from 'express';
 import { meetingService } from '../services/meeting.service';
-import { PathParamUserDto } from '../dtos/user.dto';
+import { PathParamUserDto, PathParamUserMeetingDto } from '../dtos/user.dto';
 import createHttpError from 'http-errors';
 import { plainToClass } from 'class-transformer';
 import { validateDto } from '../handlers/validate-request.handler';
@@ -47,12 +47,17 @@ export function isOwner () {
 }
 
 export function isCreator () {
-    return async (req: Request, res: Response, next: NextFunction) => {
+    return async (req: Request<PathParamUserMeetingDto>, res: Response, next: NextFunction) => {
         try {
-            const meetingId = req.params._id;
+            // Transform request params to class
+            const pathParams = plainToClass(PathParamUserMeetingDto, req.params);
+            // Validate request params object
+            await validateDto(pathParams);
+            const { meetingId, username } = req.params;
+            const owns = username === req.user?.username;
             const meeting = await meetingService.findById(meetingId);
             const ownsMeeting = meeting.creator === req.user?.username;
-            if (req.user && ownsMeeting) {
+            if (req.user && owns && ownsMeeting) {
                 next();
             } else {
                 next(createHttpError.Unauthorized('You are not authorised!'));
