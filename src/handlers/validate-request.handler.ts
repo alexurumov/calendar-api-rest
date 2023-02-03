@@ -1,7 +1,7 @@
 import { validate } from 'class-validator';
 import createHttpError from 'http-errors';
 
-export async function validateRequestBody<T extends Object> (dto: T): Promise<void> {
+export async function validateDto<T extends Object> (dto: T): Promise<void> {
     const errors = await validate(dto);
 
     if (errors.length) {

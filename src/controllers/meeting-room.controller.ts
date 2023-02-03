@@ -6,7 +6,7 @@ import {
     type PathParamMeetingRoomDto
 } from '../dtos/meeting-room.dto';
 import { plainToClass } from 'class-transformer';
-import { validateRequestBody } from '../handlers/validate-request.handler';
+import { validateDto } from '../handlers/validate-request.handler';
 import createHttpError from 'http-errors';
 
 export class MeetingRoomController {
@@ -28,7 +28,7 @@ export class MeetingRoomController {
 
         try {
             // Validate MeetingRoomDto
-            await validateRequestBody(roomDto);
+            await validateDto(roomDto);
             const created = await this.meetingRoomService.create(roomDto);
             return res.status(201).json(created);
         } catch (err: unknown) {
@@ -60,7 +60,7 @@ export class MeetingRoomController {
             if (!id) {
                 throw createHttpError.BadRequest('Meeting ID missing!');
             }
-            await validateRequestBody(meetingDto);
+            await validateDto(meetingDto);
             const updatedRoom = await this.meetingRoomService.update(id, meetingDto);
             return res.status(200).json(updatedRoom);
         } catch (err: unknown) {

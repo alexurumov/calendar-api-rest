@@ -9,5 +9,5 @@ router.post('/register', isGuest(), async (req, res, next) => { await userContro
 router.post('/login', isGuest(), async (req, res, next) => { await userController.login(req, res, next); }, createToken);
 router.get('/logout', isLogged(), (req, res) => userController.logout(req, res));
 router.get('/', isLogged(), async (req, res, next) => await userController.getAll(req, res, next));
-router.put('/:_id', isOwner(), async (req, res, next) => { await userController.updateById(req, res, next); });
-router.patch('/:meetingId', async (req, res, next) => await userController.updateStatus(req, res, next));
+router.put('/:username', isOwner(), async (req, res, next) => { await userController.updateById(req, res, next); });
+// router.patch('/:meetingId', async (req, res, next) => await userController.updateStatus(req, res, next));

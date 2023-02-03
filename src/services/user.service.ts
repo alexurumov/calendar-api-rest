@@ -1,9 +1,8 @@
 import { type UserRepository, userRepository } from '../repositories/user.repository';
-import { type ReqQueryUserDto, type UserDto, type UserRegisterDto, type UserUpdateDto } from '../dtos/user.dto';
+import { type UserDto, type UserRegisterDto, type UserUpdateDto } from '../dtos/user.dto';
 import { toUserDto, toUserRegisterDto } from '../mappers/user.mapper';
 import { toHash, verifyHash } from '../utils/bcrypt.util';
 import createHttpError from 'http-errors';
-import { type UserEntity } from '../entities/user.entity';
 import { validateUpdateUser } from '../handlers/validate-user.handler';
 
 export class UserService {
@@ -45,23 +44,19 @@ export class UserService {
         return toUserDto(userEntity);
     }
 
-    async getAll (dto: ReqQueryUserDto): Promise<UserDto[]> {
-        const { company } = dto;
-        let users: UserEntity[];
-        if (company !== undefined) {
-            users = await this.userRepository.findAllByCompany({ company });
-        } else {
-            users = await this.userRepository.findAll();
-        }
+    async getAll (): Promise<UserDto[]> {
+        const users = await this.userRepository.findAll();
         return users.map(toUserDto);
     }
 
-    async update (id: string, userDto: UserUpdateDto): Promise<UserDto> {
-        const [existing, all] = await Promise.all([this.userRepository.findById(id), this.userRepository.findAll()]);
+    async update (username: string, userDto: UserUpdateDto): Promise<UserDto> {
+        const [existing, all] = await Promise.all([this.userRepository.findByUsername(username), this.userRepository.findAll()]);
 
         // Validate specific meeting requirements
         validateUpdateUser(existing, userDto, all);
 
+        // TODO: Fix all no-null assertion checks in code!
+        const id = existing!._id.toString();
         const updated = await this.userRepository.updateById(id, userDto);
         if (updated == null) {
             throw createHttpError.BadRequest('Invalid input!');

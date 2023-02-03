@@ -91,7 +91,7 @@ export class MeetingUpdateDto {
 export class ReqQueryFilterMeetings {
     answered?: Answered;
     period?: Period;
-};
+}
 
 export class StatusUpdateDto implements Required<Pick<Participant, 'answered'>> {
     @IsEnum(Answered, { message: 'New status must be one of the following: yes | no | pending' })
@@ -106,4 +106,8 @@ export enum Period {
     Future = 'future'
 }
 
-export type PathParamMeetingDto = Required<Pick<MeetingDto, '_id'>>;
+export class PathParamMeetingDto {
+    @IsNotEmpty({ message: 'Meeting id is required!' })
+    @Expose()
+        _id!: string;
+}

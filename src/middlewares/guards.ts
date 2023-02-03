@@ -1,11 +1,10 @@
 import { type NextFunction, type Request, type Response } from 'express';
 import { meetingService } from '../services/meeting.service';
-import { type PathParamUserDto, type UserUpdateDto } from '../dtos/user.dto';
+import { type PathParamUserDto } from '../dtos/user.dto';
 import createHttpError from 'http-errors';
-import { type MeetingUpdateDto, type PathParamMeetingDto } from '../dtos/meeting.dto';
 
 export function isLogged () {
-    return (req: Request<PathParamMeetingDto>, res: Response, next: NextFunction) => {
+    return (req: Request, res: Response, next: NextFunction) => {
         if (req.user) {
             next();
         } else {
@@ -25,9 +24,9 @@ export function isGuest () {
 }
 
 export function isOwner () {
-    return async (req: Request<PathParamUserDto, {}, UserUpdateDto>, res: Response, next: NextFunction) => {
-        const userId = req.params._id;
-        const owns = userId === req.user?._id;
+    return async (req: Request<PathParamUserDto>, res: Response, next: NextFunction) => {
+        const username = req.params.username;
+        const owns = username === req.user?.username;
         if (req.user && owns) {
             next();
         } else {
@@ -37,7 +36,7 @@ export function isOwner () {
 }
 
 export function isCreator () {
-    return async (req: Request<PathParamMeetingDto, {}, MeetingUpdateDto>, res: Response, next: NextFunction) => {
+    return async (req: Request, res: Response, next: NextFunction) => {
         try {
             const meetingId = req.params._id;
             const meeting = await meetingService.findById(meetingId);
