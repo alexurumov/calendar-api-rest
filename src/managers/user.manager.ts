@@ -439,11 +439,8 @@ export class UserManager {
                     break;
             }
         }
-
         userMeeting!.answered = statusUpdateDto.answered;
-        const updated = await this.userService.update(usernme, user);
-        // TODO: Change status in meeting DB also!
-        return updated;
+        return await this.userService.update(usernme, user);
     }
 
     private async addUserMeetingToParticipants (newUserMeeting: UserMeeting, meetingDto: MeetingDto | MeetingUpdateDto, meetingKey: string): Promise<void> {

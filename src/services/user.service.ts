@@ -55,7 +55,6 @@ export class UserService {
         // Validate specific meeting requirements
         validateUpdateUser(existing, userDto, all);
 
-        // TODO: Fix all no-null assertion checks in code!
         const id = existing!._id.toString();
         const updated = await this.userRepository.updateById(id, userDto);
         if (updated == null) {
