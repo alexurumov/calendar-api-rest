@@ -5,13 +5,15 @@ import * as dotenv from 'dotenv';
 import * as process from 'process';
 import { plainToClass } from 'class-transformer';
 import { validateDto } from '../handlers/validate-request.handler';
+import { type ReqQueryFilterMeetings } from '../dtos/meeting.dto';
+import { userManager, type UserManager } from '../managers/user.manager';
 
 dotenv.config();
 
 const COOKIE_NAME: string = process.env.COOKIE_NAME ?? 'calendar-api-cookie-name';
 
 export class UserController {
-    constructor (private readonly userService: UserService) {}
+    constructor (private readonly userService: UserService, private readonly userManager: UserManager) {}
 
     async register (req: Request<{}, {}, UserRegisterDto>, res: Response, next: NextFunction): Promise<void> {
         // Transform req.body to RegisterUserDto
@@ -72,6 +74,66 @@ export class UserController {
         }
     }
 
+    async getAllMeetings (req: Request<{}, {}, {}, ReqQueryFilterMeetings>, res: Response, next: NextFunction): Promise<Response | void> {
+        try {
+            const meetings = await this.userManager.getAllMeetings(req.user!._id, req.query.answered, req.query.period);
+            return res.status(200).json(meetings);
+        } catch (err: unknown) {
+            next(err);
+        }
+    }
+
+    // async create (req: Request<{}, {}, MeetingDto>, res: Response, next: NextFunction): Promise<Response | void> {
+    //     // Transform request body to MeetingDto Class
+    //     const meetingDto = plainToClass(MeetingDto, req.body, { excludeExtraneousValues: true });
+    //
+    //     try {
+    //         const userId = req.user?._id;
+    //         if (!userId) {
+    //             throw createHttpError.Unauthorized('You must log in to create a meeting!');
+    //         }
+    //         // Validate MeetingDto
+    //         await validateRequestBody(meetingDto);
+    //         meetingDto.creator = userId;
+    //         const createdMeeting = await this.meetingManager.create(meetingDto);
+    //         return res.status(201).json(createdMeeting);
+    //     } catch (err: unknown) {
+    //         next(err);
+    //     }
+    // }
+
+    // async updateById (req: Request<PathParamMeetingDto, {}, MeetingUpdateDto>, res: Response, next: NextFunction): Promise<Response | void> {
+    //     // Transform request body to MeetingDto Class
+    //     const meetingUpdateDto = plainToClass(MeetingUpdateDto, req.body, { excludeExtraneousValues: true });
+    //
+    //     try {
+    //         // Validate request params ID
+    //         const id: string = req.params._id.trim();
+    //         if (!id) {
+    //             throw createHttpError.BadRequest('Meeting ID missing!');
+    //         }
+    //         await validateRequestBody(meetingUpdateDto);
+    //         const updatedMeeting = await this.meetingManager.update(id, meetingUpdateDto);
+    //         return res.status(200).json(updatedMeeting);
+    //     } catch (err: unknown) {
+    //         next(err);
+    //     }
+    // }
+
+    // async deleteById (req: Request<PathParamMeetingDto>, res: Response, next: NextFunction): Promise<Response | void> {
+    //     try {
+    //         // Validate request params ID
+    //         const id = req.params._id.trim();
+    //         if (!id) {
+    //             throw createHttpError.BadRequest('Meeting ID missing!');
+    //         }
+    //         const deletedMeeting = await this.meetingManager.delete(id);
+    //         return res.status(200).json(deletedMeeting);
+    //     } catch (err: unknown) {
+    //         next(err);
+    //     }
+    // }
+
     // async updateStatus (req: Request<PathParamUpdateStatusDto, {}, StatusUpdateDto>, res: Response, next: NextFunction): Promise<Response | void> {
     //     // Transform request body to MeetingDto Class
     //     const pathParams = plainToClass(PathParamUpdateStatusDto, req.params);
@@ -108,4 +170,4 @@ export class UserController {
     // }
 }
 
-export const userController = new UserController(userService);
+export const userController = new UserController(userService, userManager);

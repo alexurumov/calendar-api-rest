@@ -113,7 +113,7 @@ function isUserMeetingInFuture (userMeeting: UserMeetingFull): boolean {
     return userMeetingStart > todayEnd;
 }
 
-export class MeetingManager {
+export class UserManager {
     constructor (
         private readonly meetingService: MeetingService,
         private readonly userService: UserService,
@@ -121,7 +121,7 @@ export class MeetingManager {
     ) {
     }
 
-    async getAll (_id: string, answered?: string, period?: string): Promise<UserMeetingFull[]> {
+    async getAllMeetings (_id: string, answered?: string, period?: string): Promise<UserMeetingFull[]> {
         const user = await this.userService.findById(_id);
         let userMeetings: UserMeetingFull[] = [];
         for (const meetingsKey in user.meetings) {
@@ -698,4 +698,4 @@ export class MeetingManager {
     }
 }
 
-export const meetingManager = new MeetingManager(meetingService, userService, meetingRoomService);
+export const userManager = new UserManager(meetingService, userService, meetingRoomService);
