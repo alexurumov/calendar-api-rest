@@ -1,12 +1,12 @@
 import { Types } from 'mongoose';
 import { AutoMap } from '@automapper/classes';
 import { type Creator, MeetingDto } from '../dtos/meeting.dto';
-import { Answered } from './meeting.entity';
+import { Answered } from '../types/enums';
 
 // TODO: Move DTOs
 export class UserMeeting implements Pick<Creator, 'answered'> {
     meeting_id!: string;
-    answered: Answered = Answered.Pending;
+    answered: Answered = Answered.PENDING;
 }
 
 // TODO: Move DTOs

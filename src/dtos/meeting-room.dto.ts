@@ -30,6 +30,7 @@ export class MeetingRoomDto {
     @AutoMap()
         capacity!: number;
 }
+
 export class MeetingRoomUpdateDto {
     @AutoMap()
         _id?: string;
@@ -58,7 +59,5 @@ export class MeetingRoomUpdateDto {
     @AutoMap()
         capacity?: number;
 }
-
-export type ReqQueryMeetingRoomDto = Partial<MeetingRoomDto>;
 
 export type PathParamMeetingRoomDto = Required<Pick<MeetingRoomDto, '_id'>>;

@@ -1,11 +1,10 @@
 import createHttpError, { HttpError } from 'http-errors';
 import { meetingService, type MeetingService } from '../services/meeting.service';
-import { type MeetingDto, type MeetingUpdateDto, Period, type StatusUpdateDto } from '../dtos/meeting.dto';
+import { type MeetingDto, type MeetingUpdateDto, type StatusUpdateDto } from '../dtos/meeting.dto';
 import { userService, type UserService } from '../services/user.service';
 import { DateTime, Interval } from 'luxon';
 import { meetingRoomService, type MeetingRoomService } from '../services/meeting-room.service';
 import { UserMeeting, type UserMeetingFull } from '../entities/user.entity';
-import { Answered, Repeated } from '../entities/meeting.entity';
 import {
     hasConflictInHours,
     hasConflictInHoursMonthly,
@@ -15,6 +14,7 @@ import {
 import { type MeetingRoomDto } from '../dtos/meeting-room.dto';
 import { type UserDto } from '../dtos/user.dto';
 import { toUserMeetingFull } from '../mappers/userMeeting.mapper';
+import { Answered, Period, Repeated } from '../types/enums';
 
 function validateRoomCapacity (meetingDto: MeetingDto | MeetingUpdateDto, room: MeetingRoomDto): void {
     if (meetingDto.participants?.length && meetingDto.participants.length > room.capacity - 1) {
@@ -57,13 +57,13 @@ function validateWithinSameDay (meetingStart: DateTime, meetingEnd: DateTime): v
 
 function isUserMeetingFromToday (userMeeting: UserMeetingFull): boolean {
     switch (userMeeting.repeated) {
-        case Repeated.Daily: {
+        case Repeated.DAILY: {
             // Check if daily has already begun
             const userMeetingStart = DateTime.fromJSDate(new Date(userMeeting.startTime));
             const todayEnd = DateTime.now().endOf('day');
             return userMeetingStart <= todayEnd;
         }
-        case Repeated.Weekly: {
+        case Repeated.WEEKLY: {
             // Check if weekly matches the weekday
             const userMeetingWeekDay = DateTime.fromJSDate(new Date(userMeeting.startTime)).weekday;
             const todayWeekDay = DateTime.now().weekday;
@@ -74,7 +74,7 @@ function isUserMeetingFromToday (userMeeting: UserMeetingFull): boolean {
 
             return userMeetingWeekDay === todayWeekDay && meetingStart <= todayEnd;
         }
-        case Repeated.Monthly: {
+        case Repeated.MONTHLY: {
             // Check if monthly matches the weekday
             const userMeetingMonthDay = DateTime.fromJSDate(new Date(userMeeting.startTime)).get('day');
             const todayMonthDay = DateTime.now().get('day');
@@ -138,14 +138,14 @@ export class UserManager {
                 throw createHttpError.BadRequest('Answered filter must be one of the following: yes | no | pending');
             }
             switch (answered) {
-                case Answered.Yes:
-                    userMeetings = userMeetings.filter((userMeeting) => userMeeting.answered === Answered.Yes);
+                case Answered.YES:
+                    userMeetings = userMeetings.filter((userMeeting) => userMeeting.answered === Answered.YES);
                     break;
-                case Answered.Pending:
-                    userMeetings = userMeetings.filter((userMeeting) => userMeeting.answered === Answered.Pending);
+                case Answered.PENDING:
+                    userMeetings = userMeetings.filter((userMeeting) => userMeeting.answered === Answered.PENDING);
                     break;
                 default:
-                    userMeetings = userMeetings.filter((userMeeting) => userMeeting.answered === Answered.No);
+                    userMeetings = userMeetings.filter((userMeeting) => userMeeting.answered === Answered.NO);
                     break;
             }
         }
@@ -155,10 +155,10 @@ export class UserManager {
                 throw createHttpError.BadRequest('Period filter must be one of the following: today | past | future');
             }
             switch (period) {
-                case Period.Today:
+                case Period.TODAY:
                     userMeetings = userMeetings.filter((userMeeting) => isUserMeetingFromToday(userMeeting));
                     break;
-                case Period.Past:
+                case Period.PAST:
                     userMeetings = userMeetings.filter((userMeeting) => isUserMeetingInPast(userMeeting));
                     break;
                 default:
@@ -204,13 +204,13 @@ export class UserManager {
 
         // Check for conflict meetings in Creator!
         switch (meetingDto.repeated) {
-            case Repeated.Daily:
+            case Repeated.DAILY:
                 await this.validateCreatorMeetingsConflictDaily(creator, meetingDto);
                 break;
-            case Repeated.Weekly:
+            case Repeated.WEEKLY:
                 await this.validateCreatorMeetingsConflictWeekly(creator, meetingDto);
                 break;
-            case Repeated.Monthly:
+            case Repeated.MONTHLY:
                 await this.validateCreatorMeetingsConflictMonthly(creator, meetingDto);
                 break;
             default:
@@ -225,7 +225,7 @@ export class UserManager {
         const createdMeeting = await this.meetingService.create(meetingDto);
 
         // Construct UserMeeting Key
-        const meetingKey = meetingDto.repeated && meetingDto.repeated !== Repeated.No ? meetingDto.repeated : DateTime.fromJSDate(new Date(createdMeeting.startTime)).toFormat('dd-MM-yyyy');
+        const meetingKey = meetingDto.repeated && meetingDto.repeated !== Repeated.NO ? meetingDto.repeated : DateTime.fromJSDate(new Date(createdMeeting.startTime)).toFormat('dd-MM-yyyy');
 
         const newUserMeeting = new UserMeeting();
 
@@ -331,7 +331,7 @@ export class UserManager {
             // Populate meetings to new participants!
             const userMeeting = new UserMeeting();
             userMeeting.meeting_id = id;
-            const meetingKey = existing.repeated !== Repeated.No ? existing.repeated : DateTime.fromJSDate(new Date(existing.startTime)).toFormat('dd-MM-yyyy');
+            const meetingKey = existing.repeated !== Repeated.NO ? existing.repeated : DateTime.fromJSDate(new Date(existing.startTime)).toFormat('dd-MM-yyyy');
             meetingUpdateDto.participants = newParticipants;
             await this.addUserMeetingToParticipants(userMeeting, meetingUpdateDto, meetingKey);
 
@@ -345,13 +345,13 @@ export class UserManager {
 
         // We pass DUMMY Meeting Dto to validator + we exclude the current meeting from the conflict checks
         switch (meetingUpdateDto.repeated) {
-            case Repeated.Daily:
+            case Repeated.DAILY:
                 await this.validateCreatorMeetingsConflictDaily(creator, dummy, id);
                 break;
-            case Repeated.Weekly:
+            case Repeated.WEEKLY:
                 await this.validateCreatorMeetingsConflictWeekly(creator, dummy, id);
                 break;
-            case Repeated.Monthly:
+            case Repeated.MONTHLY:
                 await this.validateCreatorMeetingsConflictMonthly(creator, dummy, id);
                 break;
             default:
@@ -365,7 +365,7 @@ export class UserManager {
         // We would need to amend meetings in Creator and in Participants only if the Repeat feature is changed!
         if (meetingUpdateDto.repeated && meetingUpdateDto.repeated !== existing.repeated) {
             // Construct the key of the existing meeting, so we can search by it more easily
-            const oldMeetingKey = existing.repeated !== Repeated.No ? existing.repeated : DateTime.fromJSDate(new Date(existing.startTime)).toFormat('dd-MM-yyyy');
+            const oldMeetingKey = existing.repeated !== Repeated.NO ? existing.repeated : DateTime.fromJSDate(new Date(existing.startTime)).toFormat('dd-MM-yyyy');
             // Remove UserMeeting from Creator
             await this.removeUserMeeting(oldMeetingKey, creator, id);
 
@@ -378,7 +378,7 @@ export class UserManager {
             }
 
             // Construct the new key of the meeting, so we can add it to the proper place in the map
-            const newMeetingKey = meetingUpdateDto.repeated !== Repeated.No ? meetingUpdateDto.repeated : DateTime.fromJSDate(new Date(updated.startTime)).toFormat('dd-MM-yyyy');
+            const newMeetingKey = meetingUpdateDto.repeated !== Repeated.NO ? meetingUpdateDto.repeated : DateTime.fromJSDate(new Date(updated.startTime)).toFormat('dd-MM-yyyy');
 
             const userMeeting = new UserMeeting();
             userMeeting.meeting_id = id;
@@ -396,7 +396,7 @@ export class UserManager {
         const deleted = await this.meetingService.delete(id);
 
         const creator = await this.userService.findByUsername(deleted.creator);
-        const oldMeetingKey = deleted.repeated !== Repeated.No ? deleted.repeated : DateTime.fromJSDate(new Date(deleted.startTime)).toFormat('dd-MM-yyyy');
+        const oldMeetingKey = deleted.repeated !== Repeated.NO ? deleted.repeated : DateTime.fromJSDate(new Date(deleted.startTime)).toFormat('dd-MM-yyyy');
 
         // Remove UserMeetings from creator
         if (!deleted._id) {
@@ -426,18 +426,18 @@ export class UserManager {
             }
         }
         // If statusdto.answered = Answered.Yes
-        if (statusUpdateDto.answered === Answered.Yes) {
+        if (statusUpdateDto.answered === Answered.YES) {
             // Get Meeting
             const meeting = await this.meetingService.findById(meetingId);
             // Validate for conflicts
             switch (meeting.repeated) {
-                case Repeated.Daily:
+                case Repeated.DAILY:
                     await this.validateCreatorMeetingsConflictDaily(user, meeting, meetingId);
                     break;
-                case Repeated.Weekly:
+                case Repeated.WEEKLY:
                     await this.validateCreatorMeetingsConflictWeekly(user, meeting, meetingId);
                     break;
-                case Repeated.Monthly:
+                case Repeated.MONTHLY:
                     await this.validateCreatorMeetingsConflictMonthly(user, meeting, meetingId);
                     break;
                 default:
@@ -453,7 +453,7 @@ export class UserManager {
     }
 
     private async addUserMeetingToParticipants (newUserMeeting: UserMeeting, meetingDto: MeetingDto | MeetingUpdateDto, meetingKey: string): Promise<void> {
-        newUserMeeting.answered = Answered.Pending;
+        newUserMeeting.answered = Answered.PENDING;
         if (meetingDto.participants) {
             for (const participantUsername of meetingDto.participants) {
                 const participant = await this.userService.findByUsername(participantUsername);
@@ -469,7 +469,7 @@ export class UserManager {
     }
 
     private async addUserMeetingToCreator (newUserMeeting: UserMeeting, creator: UserDto, meetingKey: string): Promise<void> {
-        newUserMeeting.answered = Answered.Yes;
+        newUserMeeting.answered = Answered.YES;
 
         // Check if meetingKey already exists! If yes, push to array; If not => create new key
         if (!Object.keys(creator.meetings as Object).includes(meetingKey)) {
@@ -485,10 +485,10 @@ export class UserManager {
         for (const meetingKey in creator.meetings) {
             switch (meetingKey) {
                 // Check for conflict with daily meetings
-                case Repeated.Daily: {
+                case Repeated.DAILY: {
                     // If meetingId param is present, we filter all meetings with it, so to exclude this particular meeting => We use this when Updating Meeting
                     // We also filter meeting by Answered.Yes, because we want to check only for meetings, which are confirmed!
-                    const userMeetings = creator.meetings[Repeated.Daily].filter((userMeeting) => userMeeting.meeting_id !== meetingId && userMeeting.answered === Answered.Yes);
+                    const userMeetings = creator.meetings[Repeated.DAILY].filter((userMeeting) => userMeeting.meeting_id !== meetingId && userMeeting.answered === Answered.YES);
                     for (const userMeeting of userMeetings) {
                         const meeting = await this.meetingService.findById(userMeeting.meeting_id);
                         const existingStart = DateTime.fromJSDate(new Date(meeting.startTime));
@@ -503,10 +503,10 @@ export class UserManager {
                     break;
                 }
                 // Check for conflict with weekly meetings
-                case Repeated.Weekly: {
+                case Repeated.WEEKLY: {
                     // If meetingId param is present, we filter all meetings with it, so to exclude this particular meeting => We use this when Updating Meeting
                     // We also filter meeting by Answered.Yes, because we want to check only for meetings, which are confirmed!
-                    const userMeetings = creator.meetings[Repeated.Weekly].filter((userMeeting) => userMeeting.meeting_id !== meetingId && userMeeting.answered === Answered.Yes);
+                    const userMeetings = creator.meetings[Repeated.WEEKLY].filter((userMeeting) => userMeeting.meeting_id !== meetingId && userMeeting.answered === Answered.YES);
                     for (const userMeeting of userMeetings) {
                         const meeting = await this.meetingService.findById(userMeeting.meeting_id);
                         const existingStart = DateTime.fromJSDate(new Date(meeting.startTime));
@@ -521,10 +521,10 @@ export class UserManager {
                 }
                     break;
                     // Check for conflict with monthly meetings
-                case Repeated.Monthly: {
+                case Repeated.MONTHLY: {
                     // If meetingId param is present, we filter all meetings with it, so to exclude this particular meeting => We use this when Updating Meeting
                     // We also filter meeting by Answered.Yes, because we want to check only for meetings, which are confirmed!
-                    const userMeetings = creator.meetings[Repeated.Monthly].filter((userMeeting) => userMeeting.meeting_id !== meetingId && userMeeting.answered === Answered.Yes);
+                    const userMeetings = creator.meetings[Repeated.MONTHLY].filter((userMeeting) => userMeeting.meeting_id !== meetingId && userMeeting.answered === Answered.YES);
                     for (const userMeeting of userMeetings) {
                         const meeting = await this.meetingService.findById(userMeeting.meeting_id);
                         const existingStart = DateTime.fromJSDate(new Date(meeting.startTime));
@@ -544,7 +544,7 @@ export class UserManager {
                     if (date.startOf('day').toMillis() === newMeetingStart.startOf('day').toMillis()) {
                         // If meetingId param is present, we filter all meetings with it, so to exclude this particular meeting => We use this when Updating Meeting
                         // We also filter meeting by Answered.Yes, because we want to check only for meetings, which are confirmed!
-                        const userMeetings = creator.meetings[meetingKey].filter((userMeeting) => userMeeting.meeting_id !== meetingId && userMeeting.answered === Answered.Yes);
+                        const userMeetings = creator.meetings[meetingKey].filter((userMeeting) => userMeeting.meeting_id !== meetingId && userMeeting.answered === Answered.YES);
                         for (const userMeeting of userMeetings) {
                             const meeting = await this.meetingService.findById(userMeeting.meeting_id);
                             if (meetingsInConflict(meetingDto, meeting)) {
@@ -561,10 +561,10 @@ export class UserManager {
     private async validateCreatorMeetingsConflictDaily (creator: UserDto, meetingDto: MeetingDto, meetingId: string = 'some-invalid-username!'): Promise<void> {
         const newMeetingStart = DateTime.fromJSDate(new Date(meetingDto.startTime));
         for (const meetingKey in creator.meetings) {
-            if (meetingKey === Repeated.No || undefined) {
+            if (meetingKey === Repeated.NO || undefined) {
                 // If method is used for Update Meeting, meetingId will be valid and will return all meetings, except the one we are updating!
                 // We also filter meeting by Answered.Yes, because we want to check only for meetings, which are confirmed!
-                const userMeetings = creator.meetings[meetingKey].filter((userMeeting) => userMeeting.meeting_id !== meetingId && userMeeting.answered === Answered.Yes);
+                const userMeetings = creator.meetings[meetingKey].filter((userMeeting) => userMeeting.meeting_id !== meetingId && userMeeting.answered === Answered.YES);
                 for (const userMeeting of userMeetings) {
                     const meeting = await this.meetingService.findById(userMeeting.meeting_id);
                     const existingStart = DateTime.fromJSDate(new Date(meeting.startTime));
@@ -580,7 +580,7 @@ export class UserManager {
             // Check for direct hours conflict with all meetings, regardless of type and date!
             // If meetingId param is present, we filter all meetings with it, so to exclude this particular meeting => We use this when Updating Meeting
             // We also filter meeting by Answered.Yes, because we want to check only for meetings, which are confirmed!
-            const userMeetings = creator.meetings[meetingKey].filter((userMeeting) => userMeeting.meeting_id !== meetingId && userMeeting.answered === Answered.Yes);
+            const userMeetings = creator.meetings[meetingKey].filter((userMeeting) => userMeeting.meeting_id !== meetingId && userMeeting.answered === Answered.YES);
             for (const userMeeting of userMeetings) {
                 const meeting = await this.meetingService.findById(userMeeting.meeting_id);
                 // Check if there is a conflict with the hours of each daily, regardless of date!
@@ -596,10 +596,10 @@ export class UserManager {
         for (const meetingKey in creator.meetings) {
             switch (meetingKey) {
                 // Check for conflict with daily meetings
-                case Repeated.Daily: {
+                case Repeated.DAILY: {
                     // If meetingId param is present, we filter all meetings with it, so to exclude this particular meeting => We use this when Updating Meeting
                     // We also filter meeting by Answered.Yes, because we want to check only for meetings, which are confirmed!
-                    const userMeetings = creator.meetings[Repeated.Daily].filter((userMeeting) => userMeeting.meeting_id !== meetingId && userMeeting.answered === Answered.Yes);
+                    const userMeetings = creator.meetings[Repeated.DAILY].filter((userMeeting) => userMeeting.meeting_id !== meetingId && userMeeting.answered === Answered.YES);
                     for (const userMeeting of userMeetings) {
                         const meeting = await this.meetingService.findById(userMeeting.meeting_id);
                         // Check if there is a conflict with the hours of each daily, regardless of date!
@@ -610,10 +610,10 @@ export class UserManager {
                     break;
                 }
                 // Check for conflict with weekly meetings
-                case Repeated.Weekly: {
+                case Repeated.WEEKLY: {
                     // If meetingId param is present, we filter all meetings with it, so to exclude this particular meeting => We use this when Updating Meeting
                     // We also filter meeting by Answered.Yes, because we want to check only for meetings, which are confirmed!
-                    const userMeetings = creator.meetings[Repeated.Weekly].filter((userMeeting) => userMeeting.meeting_id !== meetingId && userMeeting.answered === Answered.Yes);
+                    const userMeetings = creator.meetings[Repeated.WEEKLY].filter((userMeeting) => userMeeting.meeting_id !== meetingId && userMeeting.answered === Answered.YES);
                     for (const userMeeting of userMeetings) {
                         const meeting = await this.meetingService.findById(userMeeting.meeting_id);
 
@@ -625,10 +625,10 @@ export class UserManager {
                 }
                     break;
                     // Check for conflict with monthly meetings
-                case Repeated.Monthly: {
+                case Repeated.MONTHLY: {
                     // If meetingId param is present, we filter all meetings with it, so to exclude this particular meeting => We use this when Updating Meeting
                     // We also filter meeting by Answered.Yes, because we want to check only for meetings, which are confirmed!
-                    const userMeetings = creator.meetings[Repeated.Monthly].filter((userMeeting) => userMeeting.meeting_id !== meetingId && userMeeting.answered === Answered.Yes);
+                    const userMeetings = creator.meetings[Repeated.MONTHLY].filter((userMeeting) => userMeeting.meeting_id !== meetingId && userMeeting.answered === Answered.YES);
                     for (const userMeeting of userMeetings) {
                         const meeting = await this.meetingService.findById(userMeeting.meeting_id);
 
@@ -642,7 +642,7 @@ export class UserManager {
                 // Check for conflict with not-repeating meetings
                 default: {
                     // We also filter meeting by Answered.Yes, because we want to check only for meetings, which are confirmed!
-                    const userMeetings = creator.meetings[meetingKey].filter((userMeeting) => userMeeting.meeting_id !== meetingId && userMeeting.answered === Answered.Yes);
+                    const userMeetings = creator.meetings[meetingKey].filter((userMeeting) => userMeeting.meeting_id !== meetingId && userMeeting.answered === Answered.YES);
                     for (const userMeeting of userMeetings) {
                         const meeting = await this.meetingService.findById(userMeeting.meeting_id);
                         const existingStart = DateTime.fromJSDate(new Date(meeting.startTime));
@@ -664,10 +664,10 @@ export class UserManager {
         for (const meetingKey in creator.meetings) {
             switch (meetingKey) {
                 // Check for conflict with daily meetings
-                case Repeated.Daily: {
+                case Repeated.DAILY: {
                     // If meetingId param is present, we filter all meetings with it, so to exclude this particular meeting => We use this when Updating Meeting
                     // We also filter meeting by Answered.Yes, because we want to check only for meetings, which are confirmed!
-                    const userMeetings = creator.meetings[Repeated.Daily].filter((userMeeting) => userMeeting.meeting_id !== meetingId && userMeeting.answered === Answered.Yes);
+                    const userMeetings = creator.meetings[Repeated.DAILY].filter((userMeeting) => userMeeting.meeting_id !== meetingId && userMeeting.answered === Answered.YES);
                     for (const userMeeting of userMeetings) {
                         const meeting = await this.meetingService.findById(userMeeting.meeting_id);
                         // Check if there is a conflict with the hours of each daily, regardless of date!
@@ -678,10 +678,10 @@ export class UserManager {
                     break;
                 }
                 // Check for conflict with weekly meetings
-                case Repeated.Weekly: {
+                case Repeated.WEEKLY: {
                     // If meetingId param is present, we filter all meetings with it, so to exclude this particular meeting => We use this when Updating Meeting
                     // We also filter meeting by Answered.Yes, because we want to check only for meetings, which are confirmed!
-                    const userMeetings = creator.meetings[Repeated.Weekly].filter((userMeeting) => userMeeting.meeting_id !== meetingId && userMeeting.answered === Answered.Yes);
+                    const userMeetings = creator.meetings[Repeated.WEEKLY].filter((userMeeting) => userMeeting.meeting_id !== meetingId && userMeeting.answered === Answered.YES);
                     for (const userMeeting of userMeetings) {
                         const meeting = await this.meetingService.findById(userMeeting.meeting_id);
 
@@ -693,10 +693,10 @@ export class UserManager {
                 }
                     break;
                     // Check for conflict with monthly meetings
-                case Repeated.Monthly: {
+                case Repeated.MONTHLY: {
                     // If meetingId param is present, we filter all meetings with it, so to exclude this particular meeting => We use this when Updating Meeting
                     // We also filter meeting by Answered.Yes, because we want to check only for meetings, which are confirmed!
-                    const userMeetings = creator.meetings[Repeated.Monthly].filter((userMeeting) => userMeeting.meeting_id !== meetingId && userMeeting.answered === Answered.Yes);
+                    const userMeetings = creator.meetings[Repeated.MONTHLY].filter((userMeeting) => userMeeting.meeting_id !== meetingId && userMeeting.answered === Answered.YES);
                     for (const userMeeting of userMeetings) {
                         const meeting = await this.meetingService.findById(userMeeting.meeting_id);
 
@@ -711,7 +711,7 @@ export class UserManager {
                 default: {
                     // If meetingId param is present, we filter all meetings with it, so to exclude this particular meeting => We use this when Updating Meeting
                     // We also filter meeting by Answered.Yes, because we want to check only for meetings, which are confirmed!
-                    const userMeetings = creator.meetings[meetingKey].filter((userMeeting) => userMeeting.meeting_id !== meetingId && userMeeting.answered === Answered.Yes);
+                    const userMeetings = creator.meetings[meetingKey].filter((userMeeting) => userMeeting.meeting_id !== meetingId && userMeeting.answered === Answered.YES);
                     for (const userMeeting of userMeetings) {
                         const meeting = await this.meetingService.findById(userMeeting.meeting_id);
                         const existingStart = DateTime.fromJSDate(new Date(meeting.startTime));

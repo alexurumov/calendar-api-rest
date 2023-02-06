@@ -2,20 +2,22 @@ import { AutoMap } from '@automapper/classes';
 import { Expose } from 'class-transformer';
 import { IsDateString, IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
 import { type UserDto } from './user.dto';
-import { Answered, Repeated } from '../entities/meeting.entity';
+import { Answered, type Period, Repeated } from '../types/enums';
 
+// TODO: Move to subEntities dir
 export class Participant implements Pick<UserDto, 'username'> {
     @AutoMap()
         username!: string;
 
     @AutoMap()
-        answered: Answered = Answered.Pending;
+        answered: Answered = Answered.PENDING;
 }
 
+// TODO: Move to subEntities dir
 export class Creator implements Pick<UserDto, 'username'> {
     username!: string;
 
-    answered: Answered = Answered.Yes;
+    answered: Answered = Answered.YES;
 }
 
 export class MeetingDto {
@@ -50,7 +52,7 @@ export class MeetingDto {
     @IsEnum(Repeated, { message: 'Repeated must be one of the following: daily, weekly, monthly, (default: no)' })
     @Expose()
     @AutoMap()
-        repeated: Repeated = Repeated.No;
+        repeated: Repeated = Repeated.NO;
 }
 
 export class MeetingUpdateDto {
@@ -98,12 +100,6 @@ export class StatusUpdateDto implements Required<Pick<Participant, 'answered'>> 
     @IsNotEmpty({ message: 'New status cannot be empty!' })
     @Expose()
         answered!: Answered;
-}
-
-export enum Period {
-    Today = 'today',
-    Past = 'past',
-    Future = 'future'
 }
 
 export class PathParamMeetingDto {

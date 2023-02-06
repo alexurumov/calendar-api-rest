@@ -1,21 +1,7 @@
 import { Types } from 'mongoose';
 import { AutoMap } from '@automapper/classes';
 import { type Creator, type Participant } from '../dtos/meeting.dto';
-
-// TODO: Move ENUMS
-export enum Repeated {
-    No = 'no',
-    Daily = 'daily',
-    Weekly = 'weekly',
-    Monthly = 'monthly'
-}
-
-// TODO: Move ENUMS
-export enum Answered {
-    Yes = 'yes',
-    No = 'no',
-    Pending = 'pending'
-}
+import { Repeated } from '../types/enums';
 
 export class MeetingEntity {
     @AutoMap()
@@ -35,5 +21,5 @@ export class MeetingEntity {
     participants?: Participant[];
 
     @AutoMap()
-        repeated: Repeated = Repeated.No;
+        repeated: Repeated = Repeated.NO;
 }

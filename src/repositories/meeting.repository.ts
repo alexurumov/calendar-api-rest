@@ -1,8 +1,9 @@
 import { isValidObjectId, model, Schema } from 'mongoose';
 import { type BaseRepository } from './base.repository';
-import { type MeetingEntity, Repeated } from '../entities/meeting.entity';
+import { type MeetingEntity } from '../entities/meeting.entity';
 import { type MeetingDto, type MeetingUpdateDto } from '../dtos/meeting.dto';
 import { toMeetingEntity, toMeetingEntityUpdate } from '../mappers/meeting.mapper';
+import { Repeated } from '../types/enums';
 
 const meetingSchema = new Schema<MeetingEntity>({
     creator: {
@@ -41,7 +42,7 @@ const meetingSchema = new Schema<MeetingEntity>({
     repeated: {
         type: String,
         required: true,
-        default: Repeated.No
+        default: Repeated.NO
     }
 });
 

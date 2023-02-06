@@ -79,8 +79,6 @@ export class UserUpdateDto extends BaseUserDto {
         password?: string;
 }
 
-export type ReqQueryUserDto = Partial<UserDto>;
-
 export class PathParamUserDto implements Required<Pick<UserDto, 'username'>> {
     @IsNotEmpty({ message: 'Username is required to access resources!' })
     @Expose()
