@@ -434,7 +434,7 @@ export class UserManager {
                 break;
             }
         }
-        // If statusdto.answered = Answered.Yes
+        // If statusDto.answered = Answered.Yes
         if (statusUpdateDto.answered === Answered.YES) {
             // Get Meeting
             const meeting = await this.meetingService.findById(meetingId);
@@ -459,15 +459,24 @@ export class UserManager {
             throw new createHttpError.NotFound('No such User Meeting found!');
         }
         userMeeting.answered = statusUpdateDto.answered;
+        // Update User Meeting for user!
         const updated = await this.userService.update(username, user);
 
-        // TODO: Update Participant and Creator in Meeting also!
-        // const meeting = await this.meetingService.findById(meetingId);
-        // if (meeting.creator === username) {
-        //     const creator = new Creator();
-        //     creator.username = username;
-        //     creator.answered = statusUpdateDto.answered;
-        // }
+        // Update Participant/Creator in Meeting also!
+        const meeting = await this.meetingService.findById(meetingId);
+        // If user is creator
+        if (meeting.creator.username === username) {
+            const creator = meeting.creator;
+            creator.answered = statusUpdateDto.answered;
+            await this.meetingService.update(meetingId, meeting);
+        } else {
+            // If user is participant
+            const participant = meeting.participants.find((part) => part.username === username);
+            if (participant) {
+                participant.answered = statusUpdateDto.answered;
+                await this.meetingService.update(meetingId, meeting);
+            }
+        }
 
         return updated;
     }
