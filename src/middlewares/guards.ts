@@ -7,10 +7,7 @@ import { validateDto } from '../handlers/validate-request.handler';
 import { type MeetingDto } from '../dtos/meeting.dto';
 
 function userExistsInMeeteing (username: string, meeting: MeetingDto): boolean {
-    if (meeting.creator === username) {
-        return true;
-    }
-    return !!(meeting.participants?.includes(username));
+    return meeting.creator === username && !!(meeting.participants?.includes(username));
 }
 
 export function isLogged () {
