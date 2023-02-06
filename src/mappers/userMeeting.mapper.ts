@@ -2,7 +2,7 @@ import { createMap, createMapper, forMember, mapFrom, typeConverter } from '@aut
 import { classes } from '@automapper/classes';
 import { Types } from 'mongoose';
 import { MeetingDto } from '../dtos/meeting.dto';
-import { UserMeetingFull } from '../entities/user.entity';
+import { UserMeetingFull } from '../sub-entities/sub-entities';
 
 const mapper = createMapper({ strategyInitializer: classes() });
 

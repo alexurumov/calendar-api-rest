@@ -4,7 +4,6 @@ import { type MeetingDto, type MeetingUpdateDto, type StatusUpdateDto } from '..
 import { userService, type UserService } from '../services/user.service';
 import { DateTime, Interval } from 'luxon';
 import { meetingRoomService, type MeetingRoomService } from '../services/meeting-room.service';
-import { UserMeeting, type UserMeetingFull } from '../entities/user.entity';
 import {
     hasConflictInHours,
     hasConflictInHoursMonthly,
@@ -15,6 +14,7 @@ import { type MeetingRoomDto } from '../dtos/meeting-room.dto';
 import { type UserDto } from '../dtos/user.dto';
 import { toUserMeetingFull } from '../mappers/userMeeting.mapper';
 import { Answered, Period, Repeated } from '../types/enums';
+import { UserMeeting, type UserMeetingFull } from '../sub-entities/sub-entities';
 
 function validateRoomCapacity (meetingDto: MeetingDto | MeetingUpdateDto, room: MeetingRoomDto): void {
     if (meetingDto.participants?.length && meetingDto.participants.length > room.capacity - 1) {
