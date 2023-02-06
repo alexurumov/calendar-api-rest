@@ -1,7 +1,7 @@
 import { isValidObjectId, model, Schema } from 'mongoose';
 import { type BaseRepository } from './base.repository';
 import { type MeetingEntity } from '../entities/meeting.entity';
-import { type MeetingDto, type MeetingUpdateDto } from '../dtos/meeting.dto';
+import { type MeetingCreateDto, type MeetingUpdateDto } from '../dtos/meeting.dto';
 import { toMeetingEntity, toMeetingEntityUpdate } from '../mappers/meeting.mapper';
 import { Repeated } from '../types/enums';
 
@@ -48,8 +48,8 @@ const meetingSchema = new Schema<MeetingEntity>({
 
 const meetingModel = model<MeetingEntity>('Meeting', meetingSchema);
 
-export class MeetingRepository implements BaseRepository<MeetingEntity, MeetingDto> {
-    async create (meetingDto: MeetingDto): Promise<MeetingEntity> {
+export class MeetingRepository implements BaseRepository<MeetingEntity, MeetingCreateDto> {
+    async create (meetingDto: MeetingCreateDto): Promise<MeetingEntity> {
         const entity: MeetingEntity = toMeetingEntity(meetingDto);
         return await meetingModel.create(entity);
     }

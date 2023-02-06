@@ -10,7 +10,7 @@ import {
 import { classes } from '@automapper/classes';
 import { Types } from 'mongoose';
 import { MeetingEntity } from '../entities/meeting.entity';
-import { MeetingDto, MeetingUpdateDto } from '../dtos/meeting.dto';
+import { MeetingCreateDto, MeetingDto, MeetingUpdateDto } from '../dtos/meeting.dto';
 import { Creator } from '../sub-entities/Creator.sub-entity';
 import { Participant } from '../sub-entities/Participant.sub-entity';
 
@@ -28,18 +28,16 @@ createMap(
     MeetingEntity,
     MeetingDto,
     typeConverter(Types.ObjectId, String, (objectId) => objectId.toString()),
-    forMember(
-        (dto) => dto.creator,
-        mapFrom((entity) => entity.creator.username)
+    forMember((dto) => dto.creator,
+        mapFrom((entity) => entity.creator)
     ),
-    forMember(
-        (dto) => dto.participants,
-        mapFrom((entity) => entity.participants ? entity.participants.map((p) => p.username) : undefined)
+    forMember((dto) => dto.participants,
+        mapFrom((entity) => entity.participants)
     )
 );
 createMap(
     mapper,
-    MeetingDto,
+    MeetingCreateDto,
     MeetingEntity,
     forMember(
         (entity) => entity.creator,
@@ -78,5 +76,5 @@ createMap(
 );
 
 export const toMeetingDto = (e: MeetingEntity): MeetingDto => mapper.map(e, MeetingEntity, MeetingDto);
-export const toMeetingEntity = (d: MeetingDto): MeetingEntity => mapper.map(d, MeetingDto, MeetingEntity);
+export const toMeetingEntity = (d: MeetingCreateDto): MeetingEntity => mapper.map(d, MeetingCreateDto, MeetingEntity);
 export const toMeetingEntityUpdate = (d: MeetingUpdateDto): MeetingEntity => mapper.map(d, MeetingUpdateDto, MeetingEntity);
