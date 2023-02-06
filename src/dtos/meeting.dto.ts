@@ -1,6 +1,6 @@
 import { AutoMap } from '@automapper/classes';
 import { Expose } from 'class-transformer';
-import { IsDateString, IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
+import { IsArray, IsDateString, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { Answered, type Period, Repeated } from '../types/enums';
 import { type Participant } from '../sub-entities/Participant.sub-entity';
 
@@ -9,8 +9,10 @@ export class MeetingDto {
     @AutoMap()
         _id?: string;
 
-    creator!: string;
+    @IsString({ message: 'Creator must be of type string!' })
+        creator!: string;
 
+    @IsString({ message: 'Meeting room must be of type string!' })
     @IsNotEmpty({ message: 'Meeting room is required!' })
     @Expose()
     @AutoMap()
@@ -28,6 +30,7 @@ export class MeetingDto {
     @AutoMap()
         endTime!: Date;
 
+    @IsArray({ message: 'Participants must be of type Array!' })
     @IsOptional()
     @Expose()
         participants?: string[];
@@ -46,6 +49,7 @@ export class MeetingUpdateDto implements Partial<MeetingDto> {
 
     creator?: string;
 
+    @IsString({ message: 'Meeting room must be of type string!' })
     @IsOptional()
     @Expose()
     @AutoMap()
@@ -63,6 +67,7 @@ export class MeetingUpdateDto implements Partial<MeetingDto> {
     @AutoMap()
         endTime?: Date;
 
+    @IsArray({ message: 'Participants must be of type Array!' })
     @IsOptional()
     @Expose()
         participants?: string[];
@@ -74,9 +79,14 @@ export class MeetingUpdateDto implements Partial<MeetingDto> {
         repeated?: Repeated;
 }
 
-export class ReqQueryFilterMeetings {
-    answered?: Answered;
-    period?: Period;
+export class ReqQueryFilterMeetings implements Partial<StatusUpdateDto> {
+    @IsString({ message: 'Answered filter must be of type string!' })
+    @IsOptional()
+        answered?: Answered;
+
+    @IsString({ message: 'Period filter must be of type string!' })
+    @IsOptional()
+        period?: Period;
 }
 
 export class StatusUpdateDto implements Required<Pick<Participant, 'answered'>> {
@@ -87,6 +97,7 @@ export class StatusUpdateDto implements Required<Pick<Participant, 'answered'>> 
 }
 
 export class PathParamMeetingDto implements Required<Pick<MeetingDto, '_id'>> {
+    @IsString({ message: 'Meeting id must be of type string!' })
     @IsNotEmpty({ message: 'Meeting id is required!' })
     @Expose()
         _id!: string;

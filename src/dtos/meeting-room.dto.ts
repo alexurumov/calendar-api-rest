@@ -1,11 +1,13 @@
 import { AutoMap } from '@automapper/classes';
 import { Expose } from 'class-transformer';
-import { IsInt, IsMilitaryTime, IsNotEmpty, IsOptional, Min } from 'class-validator';
+import { IsInt, IsMilitaryTime, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
 
 export class MeetingRoomDto {
+    @IsOptional()
     @AutoMap()
         _id?: string;
 
+    @IsString({ message: 'Meeting room name must be of type string!' })
     @IsNotEmpty({ message: 'Meeting room name is required!' })
     @Expose()
     @AutoMap()
@@ -32,9 +34,11 @@ export class MeetingRoomDto {
 }
 
 export class MeetingRoomUpdateDto implements Partial<MeetingRoomDto> {
+    @IsOptional()
     @AutoMap()
         _id?: string;
 
+    @IsString({ message: 'Meeting room name must be of type string!' })
     @IsOptional()
     @Expose()
     @AutoMap()
