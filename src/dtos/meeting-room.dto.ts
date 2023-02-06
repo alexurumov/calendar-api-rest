@@ -1,0 +1,72 @@
+import { AutoMap } from '@automapper/classes';
+import { Expose } from 'class-transformer';
+import { IsInt, IsMilitaryTime, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
+
+export class MeetingRoomDto {
+    @IsOptional()
+    @AutoMap()
+        _id?: string;
+
+    @IsString({ message: 'Meeting room name must be of type string!' })
+    @IsNotEmpty({ message: 'Meeting room name is required!' })
+    @Expose()
+    @AutoMap()
+        name!: string;
+
+    @IsMilitaryTime({ message: 'Meeting room start available hours must be in format: HH:MM' })
+    @IsNotEmpty({ message: 'Meeting room start available hours is required!' })
+    @Expose()
+    @AutoMap()
+        startAvailableHours!: string;
+
+    @IsMilitaryTime({ message: 'Meeting room end available hours must be in format: HH:MM' })
+    @IsNotEmpty({ message: 'Meeting room end available hours is required!' })
+    @Expose()
+    @AutoMap()
+        endAvailableHours!: string;
+
+    @IsInt({ message: 'Meeting room capacity must be an integer number!' })
+    @Min(1, { message: 'Meeting room capacity must be at least 1!' })
+    @IsNotEmpty({ message: 'Meeting room capacity is required!' })
+    @Expose()
+    @AutoMap()
+        capacity!: number;
+}
+
+export class MeetingRoomUpdateDto implements Partial<MeetingRoomDto> {
+    @IsOptional()
+    @AutoMap()
+        _id?: string;
+
+    @IsString({ message: 'Meeting room name must be of type string!' })
+    @IsOptional()
+    @Expose()
+    @AutoMap()
+        name?: string;
+
+    @IsMilitaryTime({ message: 'Meeting room start available hours must be in format: HH:MM' })
+    @IsOptional()
+    @Expose()
+    @AutoMap()
+        startAvailableHours?: string;
+
+    @IsMilitaryTime({ message: 'Meeting room end available hours must be in format: HH:MM' })
+    @IsOptional()
+    @Expose()
+    @AutoMap()
+        endAvailableHours?: string;
+
+    @IsInt({ message: 'Meeting room capacity must be an integer number!' })
+    @Min(1, { message: 'Meeting room capacity must be at least 1!' })
+    @IsOptional()
+    @Expose()
+    @AutoMap()
+        capacity?: number;
+}
+
+export class PathParamMeetingRoomDto {
+    @IsString({ message: 'Meeting room id must be of type string!' })
+    @IsNotEmpty({ message: 'Meeting room id is required!' })
+    @Expose()
+        id!: string;
+}

@@ -1,14 +1,24 @@
-import {isValidObjectId, model, Schema} from "mongoose";
-import {BaseRepository} from "./base.repository";
-import {MeetingEntity} from "../entities/meeting.entity";
-import {MeetingDto} from "../dtos/meeting.dto";
-import {toMeetingEntity} from "../mappers/meeting.mapper";
+import { isValidObjectId, model, Schema } from 'mongoose';
+import { type BaseRepository } from './base.repository';
+import { type MeetingEntity } from '../entities/meeting.entity';
+import { type MeetingDto, type MeetingUpdateDto } from '../dtos/meeting.dto';
+import { toMeetingEntity, toMeetingEntityUpdate } from '../mappers/meeting.mapper';
+import { Repeated } from '../types/enums';
 
 const meetingSchema = new Schema<MeetingEntity>({
-    name: {
+    creator: {
+        username: {
+            type: String,
+            required: true
+        },
+        answered: {
+            type: String,
+            required: true
+        }
+    },
+    meetingRoom: {
         type: String,
-        required: true,
-        unique: true
+        required: true
     },
     startTime: {
         type: Date,
@@ -18,51 +28,56 @@ const meetingSchema = new Schema<MeetingEntity>({
         type: Date,
         required: true
     },
-    room: {
+    participants: [{
+        _id: false,
+        username: {
+            type: String,
+            required: true
+        },
+        answered: {
+            type: String,
+            required: true
+        }
+    }],
+    repeated: {
         type: String,
-        required: true
-    },
-})
+        required: true,
+        default: Repeated.NO
+    }
+});
 
 const meetingModel = model<MeetingEntity>('Meeting', meetingSchema);
 
 export class MeetingRepository implements BaseRepository<MeetingEntity, MeetingDto> {
-    async create(meetingDto: MeetingDto): Promise<MeetingEntity> {
+    async create (meetingDto: MeetingDto): Promise<MeetingEntity> {
         const entity: MeetingEntity = toMeetingEntity(meetingDto);
-        return meetingModel.create(entity);
+        return await meetingModel.create(entity);
     }
 
-    async findAll(): Promise<MeetingEntity[]> {
-        return meetingModel.find();
+    async findAll (): Promise<MeetingEntity[]> {
+        return await meetingModel.find();
     }
 
-    async findById(id: string): Promise<MeetingEntity | null> {
+    async findById (id: string): Promise<MeetingEntity | null> {
         if (!isValidObjectId(id)) {
             return null;
         }
-        return meetingModel.findById(id);
+        return await meetingModel.findById(id);
     }
 
-    findAllByName<ParamDto extends Pick<MeetingDto, 'name'>>(params: Required<ParamDto>): Promise<MeetingEntity[]> {
-        return meetingModel.find({name: params.name}).exec();
-    }
-
-    findAllByRoom<ParamDto extends Pick<MeetingDto, 'room'>>(params: Required<ParamDto>): Promise<MeetingEntity[]> {
-        return meetingModel.find({room: params.room}).exec();
-    }
-
-    async updateById(id: string, dto: Partial<MeetingDto>): Promise<MeetingEntity | null> {
+    async updateById (id: string, dto: MeetingUpdateDto): Promise<MeetingEntity | null> {
         if (!isValidObjectId(id)) {
             return null;
         }
-        return meetingModel.findByIdAndUpdate(id, dto);
+        const entity = toMeetingEntityUpdate(dto);
+        return await meetingModel.findByIdAndUpdate(id, entity, { new: true });
     }
 
-    async delete(id: string): Promise<MeetingEntity | null> {
+    async delete (id: string): Promise<MeetingEntity | null> {
         if (!isValidObjectId(id)) {
             return null;
         }
-        return meetingModel.findByIdAndDelete(id);
+        return await meetingModel.findByIdAndDelete(id);
     }
 }
 

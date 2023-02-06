@@ -1,14 +1,16 @@
-import {Router} from "express";
-import {userController} from "../controllers/user.controller";
+import { Router } from 'express';
+import { userController } from '../controllers/user.controller';
+import { hasMeeting, isCreator, isLogged, isPathOwner } from '../middlewares/guards';
 
 export const router = Router();
 
-// router.get('/', (req, res) => userController.getAll(req, res));
-// router.post('/', (req, res) => userController.create(req, res));
-// router.get('/:id', (req, res) => userController.getById(req, res));
-// router.put('/:id', (req, res) => userController.updateById(req, res));
-// router.delete('/:id', (req, res) => userController.deleteById(req, res));
+router.get('/', isLogged(), async (req, res, next) => await userController.getAll(req, res, next));
 
-router.post('/register', (req, res) => userController.register(req, res));
-router.post('/login', (req, res) => userController.login(req, res));
-router.get('/logout', (req, res) => userController.logout(req, res));
+router.put('/:username', isPathOwner(), async (req, res, next) => { await userController.updateById(req, res, next); });
+
+router.get('/:username/meetings', isPathOwner(), async (req, res, next) => await userController.getAllMeetings(req, res, next));
+router.get('/:username/meetings/:meetingId', isPathOwner(), hasMeeting(), async (req, res, next) => await userController.getMeeting(req, res, next));
+router.post('/:username/meetings', isPathOwner(), async (req, res, next) => await userController.createMeeting(req, res, next));
+router.delete('/:username/meetings/:meetingId', isPathOwner(), isCreator(), async (req, res, next) => await userController.deleteById(req, res, next));
+router.put('/:username/meetings/:meetingId', isPathOwner(), isCreator(), async (req, res, next) => await userController.updateMeeting(req, res, next));
+router.patch('/:username/meetings/:meetingId', isPathOwner(), hasMeeting(), async (req, res, next) => await userController.updateStatus(req, res, next));

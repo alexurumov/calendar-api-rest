@@ -1,60 +1,118 @@
-import {Request, Response} from "express";
-import {userService, UserService} from "../services/user.service";
-import {UserDto, UserLoginDto, UserRegisterDto} from "../dtos/user.dto";
-import {createToken} from "../utils/jwt.util";
-import * as dotenv from "dotenv";
-import * as process from "process";
-import {plainToClass} from "class-transformer";
-import {validateRequestBody} from "../utils/validate-request.util";
+import { type NextFunction, type Request, type Response } from 'express';
+import { userService, type UserService } from '../services/user.service';
+import {
+    type PathParamUserDto,
+    type PathParamUserMeetingDto,
+    UserUpdateDto
+} from '../dtos/user.dto';
 
-dotenv.config();
-
-const COOKIE_NAME: string = process.env.COOKIE_NAME || 'calendar-api-cookie-name';
+import { plainToClass } from 'class-transformer';
+import { validateDto } from '../handlers/validate-request.handler';
+import { MeetingDto, MeetingUpdateDto, ReqQueryFilterMeetings, StatusUpdateDto } from '../dtos/meeting.dto';
+import { userManager, type UserManager } from '../managers/user.manager';
+import createHttpError from 'http-errors';
 
 export class UserController {
-    constructor(private userService: UserService) {
+    constructor (private readonly userService: UserService, private readonly userManager: UserManager) {}
+
+    async getAll (req: Request, res: Response, next: NextFunction): Promise<Response | void> {
+        try {
+            const users = await this.userService.getAll();
+            return res.status(200).json(users);
+        } catch (err: unknown) {
+            next(err);
+        }
     }
 
-    async register(req: Request<{}, {}, UserRegisterDto>, res: Response) {
-        // Transform req.body to RegisterUserDto
-        const userRegisterDto = plainToClass(UserRegisterDto, req.body, {excludeExtraneousValues: true});
-
-        // Validate RegisterUserDto
-        if (!await validateRequestBody(userRegisterDto, res)) {
-            return;
-        }
+    async updateById (req: Request<PathParamUserDto, {}, UserUpdateDto>, res: Response, next: NextFunction): Promise<Response | void> {
+        // Transform request body to UserUpdateDto Class
+        const userDto = plainToClass(UserUpdateDto, req.body, { excludeExtraneousValues: true });
 
         try {
-            const created = await this.userService.register(userRegisterDto);
-            createToken<UserDto>(res, created);
-            res.status(201).json(created);
-        } catch (err: any) {
-            res.status(400).json(err.message);
+            // Validate request body dto
+            await validateDto(userDto);
+            const updated = await this.userService.update(req.params.username, userDto);
+            return res.status(200).json(updated);
+        } catch (err: unknown) {
+            next(err);
         }
     }
 
-    async login(req: Request<{}, {}, UserLoginDto>, res: Response) {
-        // Transform req.body to RegisterUserDto
-        const userLoginDto = plainToClass(UserLoginDto, req.body, {excludeExtraneousValues: true});
-
-        // Validate LoginUserDto
-        if (!await validateRequestBody(userLoginDto, res)) {
-            return;
+    async getAllMeetings (req: Request<{}, {}, {}, ReqQueryFilterMeetings>, res: Response, next: NextFunction): Promise<Response | void> {
+        try {
+            if (!req.user) {
+                throw createHttpError.Unauthorized('Please, log in!');
+            }
+            // Transform request query params to class
+            const queryParams = plainToClass(ReqQueryFilterMeetings, req.query);
+            // Validate query params class
+            await validateDto(queryParams);
+            const meetings = await this.userManager.getAllMeetings(req.user._id, queryParams.answered, queryParams.period);
+            return res.status(200).json(meetings);
+        } catch (err: unknown) {
+            next(err);
         }
+    }
+
+    async getMeeting (req: Request<PathParamUserMeetingDto>, res: Response, next: NextFunction): Promise<Response | void> {
+        try {
+            const meeting = await this.userManager.getMeeting(req.params.meetingId);
+            return res.status(200).json(meeting);
+        } catch (err: unknown) {
+            next(err);
+        }
+    }
+
+    async createMeeting (req: Request<PathParamUserDto, {}, MeetingDto>, res: Response, next: NextFunction): Promise<Response | void> {
+        // Transform request body to MeetingDto Class
+        const meetingDto = plainToClass(MeetingDto, req.body, { excludeExtraneousValues: true });
 
         try {
-            const user = await this.userService.login(userLoginDto);
-            createToken<UserDto>(res, user);
-            res.status(200).json(user);
-        } catch (err: any) {
-            res.status(400).json(err.message);
+            // Validate MeetingDto
+            await validateDto(meetingDto);
+            meetingDto.creator = req.params.username;
+            const createdMeeting = await this.userManager.createMeeting(meetingDto);
+            return res.status(201).json(createdMeeting);
+        } catch (err: unknown) {
+            next(err);
         }
     }
 
-    logout(req: Request, res: Response) {
-        res.clearCookie(COOKIE_NAME);
-        res.status(200).json('Logged out!');
+    async updateMeeting (req: Request<PathParamUserMeetingDto, {}, MeetingUpdateDto>, res: Response, next: NextFunction): Promise<Response | void> {
+        // Transform request body to MeetingDto Class
+        const meetingUpdateDto = plainToClass(MeetingUpdateDto, req.body, { excludeExtraneousValues: true });
+
+        try {
+            await validateDto(meetingUpdateDto);
+            const updatedMeeting = await this.userManager.updateMeeting(req.params.meetingId, meetingUpdateDto);
+            return res.status(200).json(updatedMeeting);
+        } catch (err: unknown) {
+            next(err);
+        }
+    }
+
+    async deleteById (req: Request<PathParamUserMeetingDto>, res: Response, next: NextFunction): Promise<Response | void> {
+        try {
+            const deletedMeeting = await this.userManager.deleteMeeting(req.params.meetingId);
+            return res.status(200).json(deletedMeeting);
+        } catch (err: unknown) {
+            next(err);
+        }
+    }
+
+    async updateStatus (req: Request<PathParamUserMeetingDto, {}, StatusUpdateDto>, res: Response, next: NextFunction): Promise<Response | void> {
+        // Transform request body to Status Update Dto
+        const statusUpdateDto = plainToClass(StatusUpdateDto, req.body, { excludeExtraneousValues: true });
+        try {
+            // Validate request params ID and request body
+            await validateDto(statusUpdateDto);
+
+            const updated = await this.userManager.updateStatus(req.params.username, req.params.meetingId, statusUpdateDto);
+            return res.status(200).json(updated);
+        } catch (err: unknown) {
+            next(err);
+        }
     }
 }
 
-export const userController = new UserController(userService);
+export const userController = new UserController(userService, userManager);

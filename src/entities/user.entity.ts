@@ -1,13 +1,28 @@
-import {Types} from "mongoose";
-import {AutoMap} from "@automapper/classes";
+import { Types } from 'mongoose';
+import { AutoMap } from '@automapper/classes';
+import { type UserMeeting } from '../sub-entities/user-meeting.sub-entity';
 
 export class UserEntity {
     @AutoMap()
-    _id!: Types.ObjectId;
+        _id!: Types.ObjectId;
 
     @AutoMap()
-    username!: string;
+        username!: string;
 
     @AutoMap()
-    password!: string;
+        password!: string;
+
+    @AutoMap()
+        name?: string;
+
+    @AutoMap()
+        age?: number;
+
+    @AutoMap()
+        phone?: string;
+
+    @AutoMap()
+        company?: string;
+
+    meetings!: Map<string, UserMeeting[]>;
 }

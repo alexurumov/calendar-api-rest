@@ -1,32 +1,33 @@
-import {NextFunction, Request, Response} from "express";
-import * as dotenv from "dotenv";
-import {verifyToken} from "../utils/jwt.util";
-import * as process from "process";
+import { type NextFunction, type Request, type Response } from 'express';
+import * as dotenv from 'dotenv';
+import { jwtVerifyToken } from '../utils/jwt.util';
+import * as process from 'process';
+import createHttpError from 'http-errors';
+import { JsonWebTokenError } from 'jsonwebtoken';
 
 dotenv.config();
 
-dotenv.config();
+const TOKEN_SECRET: string = process.env.TOKEN_SECRET ?? 'Calendar Api Secret!';
+const COOKIE_NAME: string = process.env.COOKIE_NAME ?? 'calendar-api-cookie-name';
 
-const TOKEN_SECRET: string = process.env.TOKEN_SECRET || 'Calendar Api Secret!';
-const COOKIE_NAME: string = process.env.COOKIE_NAME || 'calendar-api-cookie-name';
-
-export const auth = async (req: Request, res: Response, next: NextFunction) => {
+export const auth = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+    const token: string = req.cookies[COOKIE_NAME];
+    if (!token) {
+        req.user = undefined;
+        next();
+        return;
+    }
     try {
-        const token: string = req.cookies[COOKIE_NAME];
-        if (!token) {
-            req.user = undefined;
-            next();
+        const jwtPayload = jwtVerifyToken(token, TOKEN_SECRET);
+        const _id: string = jwtPayload.obj._id;
+        const username: string = jwtPayload.obj.username;
+        req.user = { _id, username };
+        next();
+    } catch (err: unknown) {
+        if (err instanceof JsonWebTokenError) {
+            next(createHttpError(498, 'Invalid Token!'));
             return;
         }
-        const jwtPayload = verifyToken(token, TOKEN_SECRET);
-        const _id: string = jwtPayload._id;
-        if (req.user) {
-            res.status(401).send("Already logged in! ");
-        }
-        req.user = {_id};
-
-        next();
-    } catch (err) {
-        res.status(401).send({message: "Invalid token!"});
+        next(err);
     }
-}
+};

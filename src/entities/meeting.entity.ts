@@ -1,19 +1,26 @@
-import {Types} from "mongoose";
-import {AutoMap} from "@automapper/classes";
+import { Types } from 'mongoose';
+import { AutoMap } from '@automapper/classes';
+import { Repeated } from '../types/enums';
+import { type Participant } from '../sub-entities/Participant.sub-entity';
+import { type Creator } from '../sub-entities/Creator.sub-entity';
 
 export class MeetingEntity {
     @AutoMap()
-    _id!: Types.ObjectId
+        _id!: Types.ObjectId;
+
+    creator!: Creator;
 
     @AutoMap()
-    name!: string;
+        meetingRoom!: string;
 
     @AutoMap()
-    startTime!: Date;
+        startTime!: Date;
 
     @AutoMap()
-    endTime!: Date;
+        endTime!: Date;
+
+    participants?: Participant[];
 
     @AutoMap()
-    room!: string;
+        repeated: Repeated = Repeated.NO;
 }

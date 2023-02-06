@@ -22,7 +22,19 @@ services:
       ME_CONFIG_MONGODB_ADMINUSERNAME: root
       ME_CONFIG_MONGODB_ADMINPASSWORD: passroot
 
+#  app:
+#    container_name: app
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#      target: base
+#    command: sh -c "npm install & npm start"
+#    ports:
+#      - '5555:5555'
+#    working_dir: /app
+#    volumes:
+#      - ./:/app
+
 volumes:
   mongodb_data_container:
 
- 

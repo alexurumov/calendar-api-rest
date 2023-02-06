@@ -1,22 +1,82 @@
-import {createMap, createMapper, typeConverter} from "@automapper/core";
-import {classes} from "@automapper/classes";
-import {Types} from "mongoose";
-import {MeetingEntity} from "../entities/meeting.entity";
-import {MeetingDto} from "../dtos/meeting.dto";
+import {
+    type Converter,
+    convertUsing,
+    createMap,
+    createMapper,
+    forMember,
+    mapFrom,
+    typeConverter
+} from '@automapper/core';
+import { classes } from '@automapper/classes';
+import { Types } from 'mongoose';
+import { MeetingEntity } from '../entities/meeting.entity';
+import { MeetingDto, MeetingUpdateDto } from '../dtos/meeting.dto';
+import { Creator } from '../sub-entities/Creator.sub-entity';
+import { Participant } from '../sub-entities/Participant.sub-entity';
 
-const mapper = createMapper({strategyInitializer: classes()});
+const mapper = createMapper({ strategyInitializer: classes() });
 
+const creatorConverter: Converter<string, Object> = {
+    convert (source: string): Object {
+        const creator = new Creator();
+        creator.username = source;
+        return creator;
+    }
+};
 createMap(
     mapper,
     MeetingEntity,
     MeetingDto,
     typeConverter(Types.ObjectId, String, (objectId) => objectId.toString()),
+    forMember(
+        (dto) => dto.creator,
+        mapFrom((entity) => entity.creator.username)
+    ),
+    forMember(
+        (dto) => dto.participants,
+        mapFrom((entity) => entity.participants ? entity.participants.map((p) => p.username) : undefined)
+    )
 );
-createMap<MeetingDto, MeetingEntity>(
+createMap(
     mapper,
     MeetingDto,
-    MeetingEntity
+    MeetingEntity,
+    forMember(
+        (entity) => entity.creator,
+        convertUsing(creatorConverter, (dto) => dto.creator)
+    ),
+    forMember(
+        (entity) => entity.participants,
+        mapFrom((dto) => dto.participants
+            ? dto.participants.map((part) => {
+                const participant = new Participant();
+                participant.username = part;
+                return participant;
+            })
+            : undefined)
+    )
 );
 
-export const toMeetingDto = (e: MeetingEntity) => mapper.map(e, MeetingEntity, MeetingDto);
-export const toMeetingEntity = (d: MeetingDto) => mapper.map(d, MeetingDto, MeetingEntity);
+createMap(
+    mapper,
+    MeetingUpdateDto,
+    MeetingEntity,
+    forMember(
+        (entity) => entity.creator,
+        convertUsing(creatorConverter, (dto) => dto.creator)
+    ),
+    forMember(
+        (entity) => entity.participants,
+        mapFrom((dto) => dto.participants
+            ? dto.participants.map((part) => {
+                const participant = new Participant();
+                participant.username = part;
+                return participant;
+            })
+            : undefined)
+    )
+);
+
+export const toMeetingDto = (e: MeetingEntity): MeetingDto => mapper.map(e, MeetingEntity, MeetingDto);
+export const toMeetingEntity = (d: MeetingDto): MeetingEntity => mapper.map(d, MeetingDto, MeetingEntity);
+export const toMeetingEntityUpdate = (d: MeetingUpdateDto): MeetingEntity => mapper.map(d, MeetingUpdateDto, MeetingEntity);
