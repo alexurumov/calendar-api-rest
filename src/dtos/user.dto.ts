@@ -48,6 +48,7 @@ abstract class BaseUserDto {
         company?: string;
 
     @IsObject({ message: 'User meetings must be of type object!' })
+    @IsOptional()
     @Expose()
         meetings: Record<string, UserMeeting[]> = {};
 }
@@ -78,6 +79,7 @@ export class UserRegisterDto extends UserDto {
         confirmPassword!: string;
 
     @IsObject({ message: 'User meetings must be of type object!' })
+    @IsOptional()
     @AutoMap()
         meetings: Record<string, UserMeeting[]> = {};
 }

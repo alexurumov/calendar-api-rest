@@ -3,59 +3,17 @@ import { userService, type UserService } from '../services/user.service';
 import {
     type PathParamUserDto,
     type PathParamUserMeetingDto,
-    UserDto,
-    UserRegisterDto,
     UserUpdateDto
 } from '../dtos/user.dto';
-import * as dotenv from 'dotenv';
-import * as process from 'process';
+
 import { plainToClass } from 'class-transformer';
 import { validateDto } from '../handlers/validate-request.handler';
 import { MeetingDto, MeetingUpdateDto, ReqQueryFilterMeetings, StatusUpdateDto } from '../dtos/meeting.dto';
 import { userManager, type UserManager } from '../managers/user.manager';
 import createHttpError from 'http-errors';
 
-dotenv.config();
-
-const COOKIE_NAME: string = process.env.COOKIE_NAME ?? 'calendar-api-cookie-name';
-
 export class UserController {
     constructor (private readonly userService: UserService, private readonly userManager: UserManager) {}
-
-    async register (req: Request<{}, {}, UserRegisterDto>, res: Response, next: NextFunction): Promise<void> {
-        // Transform req.body to RegisterUserDto
-        const userRegisterDto = plainToClass(UserRegisterDto, req.body, { excludeExtraneousValues: true });
-        try {
-            // Validate RegisterUserDto
-            await validateDto(userRegisterDto);
-
-            // Transfer data to next middleware, so response could be constructed!
-            res.locals.created = await this.userService.register(userRegisterDto);
-            next();
-        } catch (err: unknown) {
-            next(err);
-        }
-    }
-
-    async login (req: Request<{}, {}, UserDto>, res: Response, next: NextFunction): Promise<void> {
-        // Transform req.body to RegisterUserDto
-        const userLoginDto = plainToClass(UserDto, req.body, { excludeExtraneousValues: true });
-
-        try {
-            // Validate LoginUserDto
-            await validateDto(userLoginDto);
-
-            // Transfer data to next middleware, so response could be constructed!
-            res.locals.created = await this.userService.login(userLoginDto);
-            next(); return;
-        } catch (err: unknown) {
-            next(err);
-        }
-    }
-
-    logout (req: Request, res: Response): Response {
-        return res.clearCookie(COOKIE_NAME).status(200).json('Logged out!');
-    }
 
     async getAll (req: Request, res: Response, next: NextFunction): Promise<Response | void> {
         try {
@@ -86,10 +44,10 @@ export class UserController {
                 throw createHttpError.Unauthorized('Please, log in!');
             }
             // Transform request query params to class
-            const querryParams = plainToClass(ReqQueryFilterMeetings, req.query);
+            const queryParams = plainToClass(ReqQueryFilterMeetings, req.query);
             // Validate query params class
-            await validateDto(querryParams);
-            const meetings = await this.userManager.getAllMeetings(req.user._id, querryParams.answered, querryParams.period);
+            await validateDto(queryParams);
+            const meetings = await this.userManager.getAllMeetings(req.user._id, queryParams.answered, queryParams.period);
             return res.status(200).json(meetings);
         } catch (err: unknown) {
             next(err);

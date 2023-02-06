@@ -121,8 +121,8 @@ export class UserManager {
     ) {
     }
 
-    async getAllMeetings (_id: string, answered?: string, period?: string): Promise<UserMeetingFull[]> {
-        const user = await this.userService.findById(_id);
+    async getAllMeetings (id: string, answered?: string, period?: string): Promise<UserMeetingFull[]> {
+        const user = await this.userService.findById(id);
         let userMeetings: UserMeetingFull[] = [];
         for (const meetingsKey in user.meetings) {
             for (const userMeeting of user.meetings[meetingsKey]) {
@@ -755,7 +755,7 @@ export class UserManager {
     }
 
     private async removeUserMeeting (oldMeetingKey: string, user: UserDto, id: string): Promise<void> {
-    // Remove the meeting from Creator's Map
+        // Remove the meeting from Creator's Map
         user.meetings[oldMeetingKey] = user.meetings[oldMeetingKey].filter((meetings) => meetings.meetingId !== id);
         await this.userService.update(user.username, user);
     }
