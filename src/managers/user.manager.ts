@@ -229,7 +229,10 @@ export class UserManager {
 
         const newUserMeeting = new UserMeeting();
 
-        newUserMeeting.meeting_id = createdMeeting._id!;
+        if (!createdMeeting._id) {
+            throw createHttpError.NotFound('No such meeting found!');
+        }
+        newUserMeeting.meeting_id = createdMeeting._id;
 
         // Add meeting to creator
         await this.addUserMeetingToCreator(newUserMeeting, creator, meetingKey);
@@ -396,13 +399,16 @@ export class UserManager {
         const oldMeetingKey = deleted.repeated !== Repeated.No ? deleted.repeated : DateTime.fromJSDate(new Date(deleted.startTime)).toFormat('dd-MM-yyyy');
 
         // Remove UserMeetings from creator
-        await this.removeUserMeeting(oldMeetingKey, creator, deleted._id!);
+        if (!deleted._id) {
+            throw createHttpError.NotFound('No such Meeting found!');
+        }
+        await this.removeUserMeeting(oldMeetingKey, creator, deleted._id);
 
         // Remove UserMeetings from participants
         if (deleted.participants) {
             for (const participantUsername of deleted.participants) {
                 const participant = await this.userService.findByUsername(participantUsername);
-                await this.removeUserMeeting(oldMeetingKey, participant, deleted._id!);
+                await this.removeUserMeeting(oldMeetingKey, participant, deleted._id);
             }
         }
         return deleted;
@@ -411,7 +417,7 @@ export class UserManager {
     async updateStatus (usernme: string, meetingId: string, statusUpdateDto: StatusUpdateDto): Promise<UserDto> {
         const user = await this.userService.findByUsername(usernme);
         // Find user meeting
-        let userMeeting: UserMeeting;
+        let userMeeting;
         for (const meetingsKey in user.meetings) {
             const found = user.meetings[meetingsKey].find((userMeeting) => userMeeting.meeting_id === meetingId);
             if (found) {
@@ -439,7 +445,10 @@ export class UserManager {
                     break;
             }
         }
-        userMeeting!.answered = statusUpdateDto.answered;
+        if (!userMeeting) {
+            throw new createHttpError.NotFound('No such User Meeting found!');
+        }
+        userMeeting.answered = statusUpdateDto.answered;
         return await this.userService.update(usernme, user);
     }
 

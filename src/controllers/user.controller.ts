@@ -13,6 +13,7 @@ import { plainToClass } from 'class-transformer';
 import { validateDto } from '../handlers/validate-request.handler';
 import { MeetingDto, MeetingUpdateDto, type ReqQueryFilterMeetings, StatusUpdateDto } from '../dtos/meeting.dto';
 import { userManager, type UserManager } from '../managers/user.manager';
+import createHttpError from 'http-errors';
 
 dotenv.config();
 
@@ -81,7 +82,10 @@ export class UserController {
 
     async getAllMeetings (req: Request<{}, {}, {}, ReqQueryFilterMeetings>, res: Response, next: NextFunction): Promise<Response | void> {
         try {
-            const meetings = await this.userManager.getAllMeetings(req.user!._id, req.query.answered, req.query.period);
+            if (!req.user) {
+                throw createHttpError.Unauthorized('Please, log in!');
+            }
+            const meetings = await this.userManager.getAllMeetings(req.user._id, req.query.answered, req.query.period);
             return res.status(200).json(meetings);
         } catch (err: unknown) {
             next(err);

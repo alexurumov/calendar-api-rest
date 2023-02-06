@@ -55,7 +55,10 @@ export class UserService {
         // Validate specific meeting requirements
         validateUpdateUser(existing, userDto, all);
 
-        const id = existing!._id.toString();
+        if (!existing) {
+            throw createHttpError.NotFound('No such user found!');
+        }
+        const id = existing._id.toString();
         const updated = await this.userRepository.updateById(id, userDto);
         if (updated == null) {
             throw createHttpError.BadRequest('Invalid input!');
