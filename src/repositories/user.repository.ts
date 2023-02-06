@@ -30,7 +30,7 @@ const userSchema = new Schema<UserEntity>({
         type: Map,
         of: [{
             _id: false,
-            meeting_id: String,
+            meetingId: String,
             answered: String
         }],
         default: {},

@@ -5,7 +5,7 @@ import { Answered } from '../types/enums';
 
 // TODO: Move DTOs
 export class UserMeeting implements Pick<Creator, 'answered'> {
-    meeting_id!: string;
+    meetingId!: string;
     answered: Answered = Answered.PENDING;
 }
 
