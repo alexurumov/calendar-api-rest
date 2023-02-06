@@ -60,7 +60,7 @@ export class UserService {
         }
         const id = existing._id.toString();
         const updated = await this.userRepository.updateById(id, userDto);
-        if (updated == null) {
+        if (!updated) {
             throw createHttpError.BadRequest('Invalid input!');
         }
         return toUserDto(updated);
