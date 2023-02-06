@@ -1,6 +1,6 @@
 import { type NextFunction, type Request, type Response } from 'express';
 import * as dotenv from 'dotenv';
-import { JWTVerifyToken } from '../utils/jwt.util';
+import { jwtVerifyToken } from '../utils/jwt.util';
 import * as process from 'process';
 import createHttpError from 'http-errors';
 import { JsonWebTokenError } from 'jsonwebtoken';
@@ -19,7 +19,7 @@ export const auth = async (req: Request, res: Response, next: NextFunction): Pro
             return;
         }
 
-        const jwtPayload = JWTVerifyToken(token, TOKEN_SECRET);
+        const jwtPayload = jwtVerifyToken(token, TOKEN_SECRET);
         const _id: string = jwtPayload.obj._id;
         const username: string = jwtPayload.obj.username;
         req.user = { _id, username };

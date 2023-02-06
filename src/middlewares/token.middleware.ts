@@ -1,6 +1,6 @@
 import { type Request, type Response } from 'express';
 import * as dotenv from 'dotenv';
-import { JWTCreateToken } from '../utils/jwt.util';
+import { jwtCreateToken } from '../utils/jwt.util';
 import { UserDto } from '../dtos/user.dto';
 import { plainToInstance } from 'class-transformer';
 
@@ -8,6 +8,6 @@ dotenv.config();
 
 export const createToken = (req: Request, res: Response): Response => {
     const created = plainToInstance(UserDto, res.locals.created, { enableCircularCheck: true });
-    JWTCreateToken<UserDto>(res, created);
+    jwtCreateToken<UserDto>(res, created);
     return res.status(201).json(created);
 };
