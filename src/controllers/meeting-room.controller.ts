@@ -1,13 +1,8 @@
 import { type NextFunction, type Request, type Response } from 'express';
 import { type MeetingRoomService, meetingRoomService } from '../services/meeting-room.service';
-import {
-    MeetingRoomDto,
-    MeetingRoomUpdateDto,
-    type PathParamMeetingRoomDto
-} from '../dtos/meeting-room.dto';
+import { MeetingRoomDto, MeetingRoomUpdateDto, PathParamMeetingRoomDto } from '../dtos/meeting-room.dto';
 import { plainToClass } from 'class-transformer';
 import { validateDto } from '../handlers/validate-request.handler';
-import createHttpError from 'http-errors';
 
 export class MeetingRoomController {
     constructor (private readonly meetingRoomService: MeetingRoomService) {
@@ -37,13 +32,12 @@ export class MeetingRoomController {
     }
 
     async getById (req: Request<PathParamMeetingRoomDto>, res: Response, next: NextFunction): Promise<Response | void> {
+        // Transform request params to Object
+        const params = plainToClass(PathParamMeetingRoomDto, req.params);
         try {
-            // Validate request params ID
-            const id: string = req.params._id.trim();
-            if (!id) {
-                throw createHttpError.BadRequest('Meeting ID missing!');
-            }
-            const room = await this.meetingRoomService.findById(id);
+            // Validate request params Object
+            await validateDto(params);
+            const room = await this.meetingRoomService.findById(params.id);
             return res.status(200).json(room);
         } catch (err: unknown) {
             next(err);
@@ -53,15 +47,12 @@ export class MeetingRoomController {
     async updateById (req: Request<PathParamMeetingRoomDto, {}, MeetingRoomUpdateDto>, res: Response, next: NextFunction): Promise<Response | void> {
         // Transform request body to MeetingRoomDto Class
         const meetingDto = plainToClass(MeetingRoomUpdateDto, req.body, { excludeExtraneousValues: true });
-
+        // Transform request params to Object
+        const params = plainToClass(PathParamMeetingRoomDto, req.params);
         try {
-            // Validate request params ID
-            const id: string = req.params._id.trim();
-            if (!id) {
-                throw createHttpError.BadRequest('Meeting ID missing!');
-            }
-            await validateDto(meetingDto);
-            const updatedRoom = await this.meetingRoomService.update(id, meetingDto);
+            // Validate request params Object + MeetingDto
+            await Promise.all([validateDto(params), validateDto(meetingDto)]);
+            const updatedRoom = await this.meetingRoomService.update(params.id, meetingDto);
             return res.status(200).json(updatedRoom);
         } catch (err: unknown) {
             next(err);
@@ -69,13 +60,12 @@ export class MeetingRoomController {
     }
 
     async deleteById (req: Request<PathParamMeetingRoomDto>, res: Response, next: NextFunction): Promise<Response | void> {
+        // Transform request params to Object
+        const params = plainToClass(PathParamMeetingRoomDto, req.params);
         try {
-            // Validate request params ID
-            const id = req.params._id.trim();
-            if (!id) {
-                throw createHttpError.BadRequest('Meeting ID missing!');
-            }
-            const deletedRoom = await this.meetingRoomService.delete(id);
+            // Validate request params Object
+            await validateDto(params);
+            const deletedRoom = await this.meetingRoomService.delete(params.id);
             return res.status(200).json(deletedRoom);
         } catch (err: unknown) {
             next(err);

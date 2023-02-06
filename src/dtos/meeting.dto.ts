@@ -96,9 +96,9 @@ export class StatusUpdateDto implements Required<Pick<Participant, 'answered'>> 
         answered!: Answered;
 }
 
-export class PathParamMeetingDto implements Required<Pick<MeetingDto, '_id'>> {
+export class PathParamMeetingDto {
     @IsString({ message: 'Meeting id must be of type string!' })
     @IsNotEmpty({ message: 'Meeting id is required!' })
     @Expose()
-        _id!: string;
+        id!: string;
 }

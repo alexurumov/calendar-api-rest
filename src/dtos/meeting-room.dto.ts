@@ -64,4 +64,9 @@ export class MeetingRoomUpdateDto implements Partial<MeetingRoomDto> {
         capacity?: number;
 }
 
-export type PathParamMeetingRoomDto = Required<Pick<MeetingRoomDto, '_id'>>;
+export class PathParamMeetingRoomDto {
+    @IsString({ message: 'Meeting room id must be of type string!' })
+    @IsNotEmpty({ message: 'Meeting room id is required!' })
+    @Expose()
+        id!: string;
+}

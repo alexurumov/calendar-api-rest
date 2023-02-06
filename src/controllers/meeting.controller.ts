@@ -24,7 +24,7 @@ export class MeetingController {
         try {
             // Validate request params object
             await validateDto(pathParamMeetingDto);
-            const meeting = await this.meetingService.findById(pathParamMeetingDto._id);
+            const meeting = await this.meetingService.findById(pathParamMeetingDto.id);
             return res.status(200).json(meeting);
         } catch (err: unknown) {
             next(err);
