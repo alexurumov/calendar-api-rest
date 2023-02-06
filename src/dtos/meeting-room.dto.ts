@@ -31,7 +31,7 @@ export class MeetingRoomDto {
         capacity!: number;
 }
 
-export class MeetingRoomUpdateDto {
+export class MeetingRoomUpdateDto implements Partial<MeetingRoomDto> {
     @AutoMap()
         _id?: string;
 

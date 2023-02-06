@@ -39,7 +39,7 @@ export class MeetingDto {
         repeated: Repeated = Repeated.NO;
 }
 
-export class MeetingUpdateDto {
+export class MeetingUpdateDto implements Partial<MeetingDto> {
     @IsOptional()
     @AutoMap()
         _id?: string;
@@ -86,7 +86,7 @@ export class StatusUpdateDto implements Required<Pick<Participant, 'answered'>> 
         answered!: Answered;
 }
 
-export class PathParamMeetingDto {
+export class PathParamMeetingDto implements Required<Pick<MeetingDto, '_id'>> {
     @IsNotEmpty({ message: 'Meeting id is required!' })
     @Expose()
         _id!: string;
