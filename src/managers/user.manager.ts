@@ -14,7 +14,7 @@ import { type MeetingRoomDto } from '../dtos/meeting-room.dto';
 import { type UserDto } from '../dtos/user.dto';
 import { toUserMeetingFull } from '../mappers/userMeeting.mapper';
 import { Answered, Period, Repeated } from '../types/enums';
-import { UserMeeting, type UserMeetingFull } from '../sub-entities/sub-entities';
+import { UserMeeting, type UserMeetingFull } from '../sub-entities/user-meeting.sub-entity';
 
 function validateRoomCapacity (meetingDto: MeetingDto | MeetingUpdateDto, room: MeetingRoomDto): void {
     if (meetingDto.participants?.length && meetingDto.participants.length > room.capacity - 1) {

@@ -1,7 +1,7 @@
 import { AutoMap } from '@automapper/classes';
 import { IsInt, IsNotEmpty, IsOptional, IsPhoneNumber, Max, MaxLength, Min, MinLength } from 'class-validator';
 import { Expose } from 'class-transformer';
-import { type UserMeeting } from '../sub-entities/sub-entities';
+import { type UserMeeting } from '../sub-entities/user-meeting.sub-entity';
 
 abstract class BaseUserDto {
     @AutoMap()

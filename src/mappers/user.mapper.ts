@@ -3,7 +3,7 @@ import { createMap, createMapper, forMember, ignore, mapFrom, typeConverter } fr
 import { UserEntity } from '../entities/user.entity';
 import { UserDto, UserRegisterDto } from '../dtos/user.dto';
 import { classes } from '@automapper/classes';
-import { type UserMeeting } from '../sub-entities/sub-entities';
+import { type UserMeeting } from '../sub-entities/user-meeting.sub-entity';
 
 const mapper = createMapper({ strategyInitializer: classes() });
 

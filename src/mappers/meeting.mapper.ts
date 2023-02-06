@@ -10,7 +10,9 @@ import {
 import { classes } from '@automapper/classes';
 import { Types } from 'mongoose';
 import { MeetingEntity } from '../entities/meeting.entity';
-import { Creator, MeetingDto, MeetingUpdateDto, Participant } from '../dtos/meeting.dto';
+import { MeetingDto, MeetingUpdateDto } from '../dtos/meeting.dto';
+import { Creator } from '../sub-entities/Creator.sub-entity';
+import { Participant } from '../sub-entities/Participant.sub-entity';
 
 const mapper = createMapper({ strategyInitializer: classes() });
 

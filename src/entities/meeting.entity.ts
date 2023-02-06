@@ -1,7 +1,8 @@
 import { Types } from 'mongoose';
 import { AutoMap } from '@automapper/classes';
-import { type Creator, type Participant } from '../dtos/meeting.dto';
 import { Repeated } from '../types/enums';
+import { type Participant } from '../sub-entities/Participant.sub-entity';
+import { type Creator } from '../sub-entities/Creator.sub-entity';
 
 export class MeetingEntity {
     @AutoMap()

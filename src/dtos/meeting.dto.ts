@@ -1,24 +1,8 @@
 import { AutoMap } from '@automapper/classes';
 import { Expose } from 'class-transformer';
 import { IsDateString, IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
-import { type UserDto } from './user.dto';
 import { Answered, type Period, Repeated } from '../types/enums';
-
-// TODO: Move to subEntities dir
-export class Participant implements Pick<UserDto, 'username'> {
-    @AutoMap()
-        username!: string;
-
-    @AutoMap()
-        answered: Answered = Answered.PENDING;
-}
-
-// TODO: Move to subEntities dir
-export class Creator implements Pick<UserDto, 'username'> {
-    username!: string;
-
-    answered: Answered = Answered.YES;
-}
+import { type Participant } from '../sub-entities/Participant.sub-entity';
 
 export class MeetingDto {
     @IsOptional()

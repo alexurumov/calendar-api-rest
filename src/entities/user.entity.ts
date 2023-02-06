@@ -1,6 +1,6 @@
 import { Types } from 'mongoose';
 import { AutoMap } from '@automapper/classes';
-import { type UserMeeting } from '../sub-entities/sub-entities';
+import { type UserMeeting } from '../sub-entities/user-meeting.sub-entity';
 
 export class UserEntity {
     @AutoMap()
