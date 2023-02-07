@@ -7,7 +7,7 @@ import { validateDto } from '../handlers/validate-request.handler';
 import { type MeetingDto } from '../dtos/meeting.dto';
 
 function userExistsInMeeteing (username: string, meeting: MeetingDto): boolean {
-    return meeting.creator === username && !!(meeting.participants?.includes(username));
+    return meeting.creator.username === username || !!(meeting.participants?.map((part) => part.username).includes(username));
 }
 
 export function isLogged () {
@@ -78,7 +78,7 @@ export function isCreator () {
             // Validate request params object
             await validateDto(pathParams);
             const meeting = await meetingService.findById(req.params.meetingId);
-            if (meeting.creator === req.user?.username) {
+            if (meeting.creator.username === req.user?.username) {
                 next();
             } else {
                 next(createHttpError.Unauthorized('You are not authorised!'));

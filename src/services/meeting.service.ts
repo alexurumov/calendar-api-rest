@@ -1,7 +1,7 @@
 import createHttpError from 'http-errors';
 import { meetingRepository, type MeetingRepository } from '../repositories/meeting.repository';
-import { type MeetingDto, type MeetingUpdateDto } from '../dtos/meeting.dto';
-import { toMeetingDto } from '../mappers/meeting.mapper';
+import { type MeetingCreateDto, type MeetingDto, MeetingUpdateDto } from '../dtos/meeting.dto';
+import { fromCreateToMeetingDto, fromUpdateToMeetingDto, toMeetingDto } from '../mappers/meeting.mapper';
 
 export class MeetingService {
     constructor (private readonly meetingRepository: MeetingRepository) {}
@@ -11,8 +11,9 @@ export class MeetingService {
         return meetings.map(toMeetingDto);
     }
 
-    async create (dto: MeetingDto): Promise<MeetingDto> {
-        const created = await this.meetingRepository.create(dto);
+    async create (dto: MeetingCreateDto): Promise<MeetingDto> {
+        const newDto = fromCreateToMeetingDto(dto);
+        const created = await this.meetingRepository.create(newDto);
         return toMeetingDto(created);
     }
 
@@ -24,10 +25,14 @@ export class MeetingService {
         return toMeetingDto(found);
     }
 
-    async update (id: string, dto: MeetingUpdateDto): Promise<MeetingDto> {
+    async update (id: string, dto: MeetingDto | MeetingUpdateDto): Promise<MeetingDto> {
         const existing = await this.meetingRepository.findById(id);
         if (!existing) {
             throw createHttpError.NotFound('No such Meeting found!');
+        }
+        // If dto is updateDto, convert to meetingDto and them pass to Repository
+        if (dto instanceof MeetingUpdateDto) {
+            dto = fromUpdateToMeetingDto(dto);
         }
         const updated = await this.meetingRepository.updateById(id, dto);
         if (!updated) {

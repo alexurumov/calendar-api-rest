@@ -1,14 +1,15 @@
 import { Types } from 'mongoose';
 import { AutoMap } from '@automapper/classes';
 import { Repeated } from '../types/enums';
-import { type Participant } from '../sub-entities/Participant.sub-entity';
-import { type Creator } from '../sub-entities/Creator.sub-entity';
+import { Participant } from '../sub-entities/Participant.sub-entity';
+import { Creator } from '../sub-entities/Creator.sub-entity';
 
 export class MeetingEntity {
     @AutoMap()
         _id!: Types.ObjectId;
 
-    creator!: Creator;
+    @AutoMap(() => Creator)
+        creator!: Creator;
 
     @AutoMap()
         meetingRoom!: string;
@@ -19,8 +20,9 @@ export class MeetingEntity {
     @AutoMap()
         endTime!: Date;
 
-    participants?: Participant[];
+    @AutoMap(() => [Participant])
+        participants?: Participant[];
 
     @AutoMap()
-        repeated: Repeated = Repeated.NO;
+        repeated?: Repeated = Repeated.NO;
 }

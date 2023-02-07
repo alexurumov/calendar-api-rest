@@ -1,5 +1,5 @@
 import { DateTime, Interval } from 'luxon';
-import { type MeetingDto } from '../dtos/meeting.dto';
+import { type MeetingCreateDto, type MeetingDto } from '../dtos/meeting.dto';
 
 export function validateTimesHHMM (start: string, end: string): boolean {
     const now = DateTime.now();
@@ -10,7 +10,7 @@ export function validateTimesHHMM (start: string, end: string): boolean {
     return startTime < endTime;
 }
 
-export function hasConflictInHours (existing: MeetingDto, meeting: MeetingDto): boolean {
+export function hasConflictInHours (existing: MeetingDto | MeetingCreateDto, meeting: MeetingDto | MeetingCreateDto): boolean {
     // Extract Hours and Minutes from all 4 dates
     const existingStartTime = DateTime.fromJSDate(new Date(existing.startTime)).toFormat('HH:mm');
     const existingEndTime = DateTime.fromJSDate(new Date(existing.endTime)).toFormat('HH:mm');
@@ -34,7 +34,7 @@ export function hasConflictInHours (existing: MeetingDto, meeting: MeetingDto): 
     return interval.contains(meetingStart) || interval.contains(meetingEnd);
 }
 
-export function hasConflictInHoursWeekly (existing: MeetingDto, meeting: MeetingDto): boolean {
+export function hasConflictInHoursWeekly (existing: MeetingDto | MeetingCreateDto, meeting: MeetingDto | MeetingCreateDto): boolean {
     const existingDay = DateTime.fromJSDate(new Date(existing.startTime)).get('weekday');
     const meetingDay = DateTime.fromJSDate(new Date(existing.startTime)).get('weekday');
 
@@ -45,7 +45,7 @@ export function hasConflictInHoursWeekly (existing: MeetingDto, meeting: Meeting
     return false;
 }
 
-export function hasConflictInHoursMonthly (existing: MeetingDto, meeting: MeetingDto): boolean {
+export function hasConflictInHoursMonthly (existing: MeetingDto | MeetingCreateDto, meeting: MeetingDto | MeetingCreateDto): boolean {
     const existingDay = DateTime.fromJSDate(new Date(existing.startTime)).get('day');
     const meetingDay = DateTime.fromJSDate(new Date(existing.startTime)).get('day');
 
@@ -56,7 +56,7 @@ export function hasConflictInHoursMonthly (existing: MeetingDto, meeting: Meetin
     return false;
 }
 
-export function meetingsInConflict (meeting: MeetingDto, existing: MeetingDto): boolean {
+export function meetingsInConflict (meeting: MeetingDto | MeetingCreateDto, existing: MeetingDto): boolean {
     const existingStart = DateTime.fromJSDate(new Date(existing.startTime));
     const existingEnd = DateTime.fromJSDate(new Date(existing.endTime));
     const existingInterval = Interval.fromDateTimes(existingStart, existingEnd);

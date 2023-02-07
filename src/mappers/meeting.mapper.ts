@@ -1,82 +1,79 @@
 import {
-    type Converter,
-    convertUsing,
     createMap,
     createMapper,
-    forMember,
+    forMember, ignore,
     mapFrom,
     typeConverter
 } from '@automapper/core';
 import { classes } from '@automapper/classes';
 import { Types } from 'mongoose';
 import { MeetingEntity } from '../entities/meeting.entity';
-import { MeetingDto, MeetingUpdateDto } from '../dtos/meeting.dto';
-import { Creator } from '../sub-entities/Creator.sub-entity';
+import { MeetingCreateDto, MeetingDto, MeetingUpdateDto } from '../dtos/meeting.dto';
 import { Participant } from '../sub-entities/Participant.sub-entity';
 
 const mapper = createMapper({ strategyInitializer: classes() });
 
-const creatorConverter: Converter<string, Object> = {
-    convert (source: string): Object {
-        const creator = new Creator();
-        creator.username = source;
-        return creator;
-    }
-};
 createMap(
     mapper,
-    MeetingEntity,
+    MeetingCreateDto,
     MeetingDto,
-    typeConverter(Types.ObjectId, String, (objectId) => objectId.toString()),
     forMember(
-        (dto) => dto.creator,
-        mapFrom((entity) => entity.creator.username)
+        (dto) => dto._id, ignore()
     ),
     forMember(
         (dto) => dto.participants,
-        mapFrom((entity) => entity.participants ? entity.participants.map((p) => p.username) : undefined)
-    )
-);
-createMap(
-    mapper,
-    MeetingDto,
-    MeetingEntity,
-    forMember(
-        (entity) => entity.creator,
-        convertUsing(creatorConverter, (dto) => dto.creator)
-    ),
-    forMember(
-        (entity) => entity.participants,
-        mapFrom((dto) => dto.participants
-            ? dto.participants.map((part) => {
-                const participant = new Participant();
-                participant.username = part;
-                return participant;
-            })
-            : undefined)
+        mapFrom((updateDto) => updateDto.participants?.map((part) => {
+            const newPart = new Participant();
+            newPart.username = part;
+            return newPart;
+        }))
     )
 );
 
 createMap(
     mapper,
     MeetingUpdateDto,
-    MeetingEntity,
+    MeetingDto,
     forMember(
-        (entity) => entity.creator,
-        convertUsing(creatorConverter, (dto) => dto.creator)
+        (dto) => dto._id, ignore()
     ),
     forMember(
-        (entity) => entity.participants,
-        mapFrom((dto) => dto.participants
-            ? dto.participants.map((part) => {
-                const participant = new Participant();
-                participant.username = part;
-                return participant;
-            })
-            : undefined)
+        (dto) => dto.participants,
+        mapFrom((updateDto) => updateDto.participants?.map((part) => {
+            const newPart = new Participant();
+            newPart.username = part;
+            return newPart;
+        }))
+    )
+);
+
+createMap(
+    mapper,
+    MeetingEntity,
+    MeetingDto,
+    typeConverter(Types.ObjectId, String, (objectId) => objectId.toString()),
+    forMember((dto) => dto.creator,
+        mapFrom((entity) => entity.creator)
+    ),
+    forMember((dto) => dto.participants,
+        mapFrom((entity) => entity.participants)
+    )
+);
+
+createMap(
+    mapper,
+    MeetingDto,
+    MeetingEntity,
+    typeConverter(Types.ObjectId, String, (objectId) => objectId.toString()),
+    forMember((dto) => dto.creator,
+        mapFrom((entity) => entity.creator)
+    ),
+    forMember((dto) => dto.participants,
+        mapFrom((entity) => entity.participants)
     )
 );
 
 export const toMeetingDto = (e: MeetingEntity): MeetingDto => mapper.map(e, MeetingEntity, MeetingDto);
 export const toMeetingEntity = (d: MeetingDto): MeetingEntity => mapper.map(d, MeetingDto, MeetingEntity);
-export const toMeetingEntityUpdate = (d: MeetingUpdateDto): MeetingEntity => mapper.map(d, MeetingUpdateDto, MeetingEntity);
+export const fromCreateToMeetingDto = (d: MeetingCreateDto): MeetingDto => mapper.map(d, MeetingCreateDto, MeetingDto);
+export const fromUpdateToMeetingDto = (d: MeetingUpdateDto): MeetingDto => mapper.map(d, MeetingUpdateDto, MeetingDto);

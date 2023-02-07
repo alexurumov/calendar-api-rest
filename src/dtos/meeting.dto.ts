@@ -2,15 +2,13 @@ import { AutoMap } from '@automapper/classes';
 import { Expose } from 'class-transformer';
 import { IsArray, IsDateString, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { Answered, type Period, Repeated } from '../types/enums';
-import { type Participant } from '../sub-entities/Participant.sub-entity';
+import { Participant } from '../sub-entities/Participant.sub-entity';
+import { Creator } from '../sub-entities/Creator.sub-entity';
 
-export class MeetingDto {
+abstract class BaseMeetingDto {
     @IsOptional()
     @AutoMap()
         _id?: string;
-
-    @IsString({ message: 'Creator must be of type string!' })
-        creator!: string;
 
     @IsString({ message: 'Meeting room must be of type string!' })
     @IsNotEmpty({ message: 'Meeting room is required!' })
@@ -30,11 +28,6 @@ export class MeetingDto {
     @AutoMap()
         endTime!: Date;
 
-    @IsArray({ message: 'Participants must be of type Array!' })
-    @IsOptional()
-    @Expose()
-        participants?: string[];
-
     @IsOptional()
     @IsEnum(Repeated, { message: 'Repeated must be one of the following: daily, weekly, monthly, (default: no)' })
     @Expose()
@@ -42,7 +35,40 @@ export class MeetingDto {
         repeated: Repeated = Repeated.NO;
 }
 
-export class MeetingUpdateDto implements Partial<MeetingDto> {
+export class MeetingCreateDto extends BaseMeetingDto {
+    creator!: string;
+
+    @IsArray({ message: 'Participants must be of type Array!' })
+    @IsOptional()
+    @Expose()
+        participants?: string[];
+}
+
+export class MeetingDto extends BaseMeetingDto {
+    @IsOptional()
+    @AutoMap()
+        _id!: string;
+
+    @AutoMap(() => Creator)
+        creator!: Creator;
+
+    @AutoMap()
+        meetingRoom!: string;
+
+    @AutoMap()
+        startTime!: Date;
+
+    @AutoMap()
+        endTime!: Date;
+
+    @AutoMap(() => [Participant])
+        participants!: Participant[];
+
+    @AutoMap()
+        repeated!: Repeated;
+}
+
+export class MeetingUpdateDto implements Partial<MeetingCreateDto> {
     @IsOptional()
     @AutoMap()
         _id?: string;

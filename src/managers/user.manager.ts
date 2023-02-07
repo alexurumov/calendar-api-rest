@@ -1,6 +1,6 @@
 import createHttpError, { HttpError } from 'http-errors';
 import { meetingService, type MeetingService } from '../services/meeting.service';
-import { type MeetingDto, type MeetingUpdateDto, type StatusUpdateDto } from '../dtos/meeting.dto';
+import { type MeetingCreateDto, type MeetingDto, type MeetingUpdateDto, type StatusUpdateDto } from '../dtos/meeting.dto';
 import { userService, type UserService } from '../services/user.service';
 import { DateTime, Interval } from 'luxon';
 import { meetingRoomService, type MeetingRoomService } from '../services/meeting-room.service';
@@ -15,6 +15,7 @@ import { type UserDto } from '../dtos/user.dto';
 import { toUserMeetingFull } from '../mappers/userMeeting.mapper';
 import { Answered, Period, Repeated } from '../types/enums';
 import { UserMeeting, type UserMeetingFull } from '../sub-entities/user-meeting.sub-entity';
+import { Participant } from '../sub-entities/Participant.sub-entity';
 
 function validateRoomCapacity (meetingDto: MeetingDto | MeetingUpdateDto, room: MeetingRoomDto): void {
     if (meetingDto.participants?.length && meetingDto.participants.length > room.capacity - 1) {
@@ -173,19 +174,19 @@ export class UserManager {
         return await this.meetingService.findById(meetingId);
     }
 
-    async createMeeting (meetingDto: MeetingDto): Promise<MeetingDto> {
+    async createMeeting (meetingCreateDto: MeetingCreateDto): Promise<MeetingDto> {
         // Is Creator existing? If yes => store in variable and use below; If no => userService method will throw error, which will be handled by Controller
-        const creator = await this.userService.findByUsername(meetingDto.creator);
+        const creator = await this.userService.findByUsername(meetingCreateDto.creator);
 
         // Is Meeting Room existing? If yes => store in variable and use below; If no => meetingRoomService method will throw error, which will be handled by Controller
-        const room = await this.meetingRoomService.findByName(meetingDto.meetingRoom);
+        const room = await this.meetingRoomService.findByName(meetingCreateDto.meetingRoom);
 
         // Check if new meeting participants + creator does not exceed Meeting Room's capacity?
-        validateRoomCapacity(meetingDto, room);
+        validateRoomCapacity(meetingCreateDto, room);
 
         // Transform new meeting start and end times to Luxon object DateTime and use variables below
-        const meetingStart = DateTime.fromJSDate(new Date(meetingDto.startTime));
-        const meetingEnd = DateTime.fromJSDate(new Date(meetingDto.endTime));
+        const meetingStart = DateTime.fromJSDate(new Date(meetingCreateDto.startTime));
+        const meetingEnd = DateTime.fromJSDate(new Date(meetingCreateDto.endTime));
 
         // Make interval from room available hours in format HH:mm
         const roomInterval = constructRoomInterval(room, meetingStart, meetingEnd);
@@ -200,32 +201,32 @@ export class UserManager {
         validateWithinSameDay(meetingStart, meetingEnd);
 
         // Participants Validation:
-        await this.validateParticipants(meetingDto, creator);
+        await this.validateParticipants(meetingCreateDto, creator);
 
         // Check for conflict meetings in Creator!
-        switch (meetingDto.repeated) {
+        switch (meetingCreateDto.repeated) {
             case Repeated.DAILY:
-                await this.validateCreatorMeetingsConflictDaily(creator, meetingDto);
+                await this.validateCreatorMeetingsConflictDaily(creator, meetingCreateDto);
                 break;
             case Repeated.WEEKLY:
-                await this.validateCreatorMeetingsConflictWeekly(creator, meetingDto);
+                await this.validateCreatorMeetingsConflictWeekly(creator, meetingCreateDto);
                 break;
             case Repeated.MONTHLY:
-                await this.validateCreatorMeetingsConflictMonthly(creator, meetingDto);
+                await this.validateCreatorMeetingsConflictMonthly(creator, meetingCreateDto);
                 break;
             default:
-                await this.validateCreatorMeetingsConflictNonRepeating(creator, meetingDto);
+                await this.validateCreatorMeetingsConflictNonRepeating(creator, meetingCreateDto);
                 break;
         }
 
         // Map Creator username to meeting Dto
-        meetingDto.creator = creator.username;
+        meetingCreateDto.creator = creator.username;
 
         // Create the meeting!
-        const createdMeeting = await this.meetingService.create(meetingDto);
+        const createdMeeting = await this.meetingService.create(meetingCreateDto);
 
         // Construct UserMeeting Key
-        const meetingKey = meetingDto.repeated && meetingDto.repeated !== Repeated.NO ? meetingDto.repeated : DateTime.fromJSDate(new Date(createdMeeting.startTime)).toFormat('dd-MM-yyyy');
+        const meetingKey = meetingCreateDto.repeated && meetingCreateDto.repeated !== Repeated.NO ? meetingCreateDto.repeated : DateTime.fromJSDate(new Date(createdMeeting.startTime)).toFormat('dd-MM-yyyy');
 
         const newUserMeeting = new UserMeeting();
 
@@ -238,7 +239,7 @@ export class UserManager {
         await this.addUserMeetingToCreator(newUserMeeting, creator, meetingKey);
 
         // Add meeting to participants
-        await this.addUserMeetingToParticipants(newUserMeeting, meetingDto, meetingKey);
+        await this.addUserMeetingToParticipants(newUserMeeting, meetingCreateDto, meetingKey);
 
         return createdMeeting;
     }
@@ -313,19 +314,23 @@ export class UserManager {
             dummy.endTime = meetingUpdateDto.endTime;
         }
 
-        const creator = await this.userService.findByUsername(existing.creator);
+        const creator = await this.userService.findByUsername(existing.creator.username);
         meetingUpdateDto.creator = creator.username;
 
         // 5. Participants:
         if (meetingUpdateDto.participants) {
             // Concat existing participants and newly added ones!
             const newParticipants = meetingUpdateDto.participants;
-            const allParticipants = existing.participants?.concat(meetingUpdateDto.participants);
+            const allParticipants = existing.participants?.concat(meetingUpdateDto.participants.map((username) => {
+                const newParticipant = new Participant();
+                newParticipant.username = username;
+                return newParticipant;
+            }));
 
             // 5.1: Check if all are existing participants' usernames
             // 5.2: Check for duplicates
             // 5.3: Check if creator is in participants
-            meetingUpdateDto.participants = allParticipants;
+            meetingUpdateDto.participants = allParticipants.map((part) => part.username);
             await this.validateParticipants(meetingUpdateDto, creator);
 
             // Populate meetings to new participants!
@@ -335,9 +340,13 @@ export class UserManager {
             meetingUpdateDto.participants = newParticipants;
             await this.addUserMeetingToParticipants(userMeeting, meetingUpdateDto, meetingKey);
 
-            meetingUpdateDto.participants = allParticipants;
+            meetingUpdateDto.participants = allParticipants.map((part) => part.username);
             // If new participants are valid, append them to DUMMY also
-            dummy.participants = meetingUpdateDto.participants;
+            dummy.participants = meetingUpdateDto.participants.map((username) => {
+                const newPart = new Participant();
+                newPart.username = username;
+                return newPart;
+            });
         }
 
         // 2.3: Is Capacity Exceeded? => Check after participants
@@ -372,7 +381,7 @@ export class UserManager {
             // Remove UserMeeting from each Participant
             if (updated.participants) {
                 for (const participantUsername of updated.participants) {
-                    const participant = await this.userService.findByUsername(participantUsername);
+                    const participant = await this.userService.findByUsername(participantUsername.username);
                     await this.removeUserMeeting(oldMeetingKey, participant, id);
                 }
             }
@@ -395,7 +404,7 @@ export class UserManager {
         // Delete meeting from meetings
         const deleted = await this.meetingService.delete(id);
 
-        const creator = await this.userService.findByUsername(deleted.creator);
+        const creator = await this.userService.findByUsername(deleted.creator.username);
         const oldMeetingKey = deleted.repeated !== Repeated.NO ? deleted.repeated : DateTime.fromJSDate(new Date(deleted.startTime)).toFormat('dd-MM-yyyy');
 
         // Remove UserMeetings from creator
@@ -407,15 +416,15 @@ export class UserManager {
         // Remove UserMeetings from participants
         if (deleted.participants) {
             for (const participantUsername of deleted.participants) {
-                const participant = await this.userService.findByUsername(participantUsername);
+                const participant = await this.userService.findByUsername(participantUsername.username);
                 await this.removeUserMeeting(oldMeetingKey, participant, deleted._id);
             }
         }
         return deleted;
     }
 
-    async updateStatus (usernme: string, meetingId: string, statusUpdateDto: StatusUpdateDto): Promise<UserDto> {
-        const user = await this.userService.findByUsername(usernme);
+    async updateStatus (username: string, meetingId: string, statusUpdateDto: StatusUpdateDto): Promise<UserDto> {
+        const user = await this.userService.findByUsername(username);
         // Find user meeting
         let userMeeting;
         for (const meetingsKey in user.meetings) {
@@ -425,7 +434,7 @@ export class UserManager {
                 break;
             }
         }
-        // If statusdto.answered = Answered.Yes
+        // If statusDto.answered = Answered.Yes
         if (statusUpdateDto.answered === Answered.YES) {
             // Get Meeting
             const meeting = await this.meetingService.findById(meetingId);
@@ -445,24 +454,50 @@ export class UserManager {
                     break;
             }
         }
+
         if (!userMeeting) {
             throw new createHttpError.NotFound('No such User Meeting found!');
         }
         userMeeting.answered = statusUpdateDto.answered;
-        return await this.userService.update(usernme, user);
+        // Update User Meeting for user!
+        const updated = await this.userService.update(username, user);
+
+        // Update Participant/Creator in Meeting also!
+        const meeting = await this.meetingService.findById(meetingId);
+        // If user is creator
+        if (meeting.creator.username === username) {
+            const creator = meeting.creator;
+            creator.answered = statusUpdateDto.answered;
+            await this.meetingService.update(meetingId, meeting);
+        } else {
+            // If user is participant
+            const participant = meeting.participants.find((part) => part.username === username);
+            if (participant) {
+                participant.answered = statusUpdateDto.answered;
+                await this.meetingService.update(meetingId, meeting);
+            }
+        }
+
+        return updated;
     }
 
-    private async addUserMeetingToParticipants (newUserMeeting: UserMeeting, meetingDto: MeetingDto | MeetingUpdateDto, meetingKey: string): Promise<void> {
+    private async addUserMeetingToParticipants (newUserMeeting: UserMeeting, meetingDto: MeetingDto | MeetingCreateDto | MeetingUpdateDto, meetingKey: string): Promise<void> {
         newUserMeeting.answered = Answered.PENDING;
         if (meetingDto.participants) {
-            for (const participantUsername of meetingDto.participants) {
-                const participant = await this.userService.findByUsername(participantUsername);
-                if (!Object.keys(participant.meetings as Object).includes(meetingKey)) {
-                    participant.meetings[meetingKey] = new Array<UserMeeting>();
+            for (const participant of meetingDto.participants) {
+                let username;
+                if (typeof participant === 'string') {
+                    username = participant;
+                } else {
+                    username = participant.username;
                 }
-                participant.meetings[meetingKey].push(newUserMeeting);
-                if (participant._id) {
-                    await this.userService.update(participant.username, participant);
+                const user = await this.userService.findByUsername(username);
+                if (!Object.keys(user.meetings as Object).includes(meetingKey)) {
+                    user.meetings[meetingKey] = new Array<UserMeeting>();
+                }
+                user.meetings[meetingKey].push(newUserMeeting);
+                if (user._id) {
+                    await this.userService.update(username, user);
                 }
             }
         }
@@ -480,7 +515,7 @@ export class UserManager {
         await this.userService.update(creator.username, creator);
     }
 
-    private async validateCreatorMeetingsConflictNonRepeating (creator: UserDto, meetingDto: MeetingDto, meetingId: string = 'some-invalid-username!'): Promise<void> {
+    private async validateCreatorMeetingsConflictNonRepeating (creator: UserDto, meetingDto: MeetingDto | MeetingCreateDto, meetingId: string = 'some-invalid-username!'): Promise<void> {
         const newMeetingStart = DateTime.fromJSDate(new Date(meetingDto.startTime));
         for (const meetingKey in creator.meetings) {
             switch (meetingKey) {
@@ -558,7 +593,7 @@ export class UserManager {
         }
     }
 
-    private async validateCreatorMeetingsConflictDaily (creator: UserDto, meetingDto: MeetingDto, meetingId: string = 'some-invalid-username!'): Promise<void> {
+    private async validateCreatorMeetingsConflictDaily (creator: UserDto, meetingDto: MeetingDto | MeetingCreateDto, meetingId: string = 'some-invalid-username!'): Promise<void> {
         const newMeetingStart = DateTime.fromJSDate(new Date(meetingDto.startTime));
         for (const meetingKey in creator.meetings) {
             if (meetingKey === Repeated.NO || undefined) {
@@ -591,7 +626,7 @@ export class UserManager {
         }
     }
 
-    private async validateCreatorMeetingsConflictWeekly (creator: UserDto, meetingDto: MeetingDto, meetingId: string = 'some-invalid-username!'): Promise<void> {
+    private async validateCreatorMeetingsConflictWeekly (creator: UserDto, meetingDto: MeetingDto | MeetingCreateDto, meetingId: string = 'some-invalid-username!'): Promise<void> {
         const newMeetingStart = DateTime.fromJSDate(new Date(meetingDto.startTime));
         for (const meetingKey in creator.meetings) {
             switch (meetingKey) {
@@ -659,7 +694,7 @@ export class UserManager {
         }
     }
 
-    private async validateCreatorMeetingsConflictMonthly (creator: UserDto, meetingDto: MeetingDto, meetingId: string = 'some-invalid-username!'): Promise<void> {
+    private async validateCreatorMeetingsConflictMonthly (creator: UserDto, meetingDto: MeetingDto | MeetingCreateDto, meetingId: string = 'some-invalid-username!'): Promise<void> {
         const newMeetingStart = DateTime.fromJSDate(new Date(meetingDto.startTime));
         for (const meetingKey in creator.meetings) {
             switch (meetingKey) {
@@ -728,7 +763,7 @@ export class UserManager {
         }
     }
 
-    private async validateParticipants (meetingDto: MeetingDto | MeetingUpdateDto, creator: UserDto): Promise<void> {
+    private async validateParticipants (meetingDto: MeetingCreateDto | MeetingUpdateDto, creator: UserDto): Promise<void> {
         if (meetingDto.participants && meetingDto.participants.length > 0) {
             try {
                 for (const participant of meetingDto.participants) {
