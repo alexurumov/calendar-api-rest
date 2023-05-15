@@ -1,15 +1,15 @@
 import createHttpError from 'http-errors';
 import { meetingRepository, type MeetingRepository } from '../repositories/meeting.repository';
-import { type MeetingCreateDto, type MeetingDto, MeetingUpdateDto } from '../dtos/meeting.dto';
+import { type MeetingCreateDto, type MeetingDto, MeetingUpdateDto, type PathParamMeetingDto } from '../dtos/meeting.dto';
 import { fromCreateToMeetingDto, fromUpdateToMeetingDto, toMeetingDto } from '../mappers/meeting.mapper';
 
 export class MeetingService {
     constructor (private readonly meetingRepository: MeetingRepository) {}
 
-    async getAll (): Promise<MeetingDto[]> {
+    getAll = async (): Promise<MeetingDto[]> => {
         const meetings = await this.meetingRepository.findAll();
         return meetings.map(toMeetingDto);
-    }
+    };
 
     async create (dto: MeetingCreateDto): Promise<MeetingDto> {
         const newDto = fromCreateToMeetingDto(dto);

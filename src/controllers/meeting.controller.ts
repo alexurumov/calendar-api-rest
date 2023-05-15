@@ -3,21 +3,14 @@ import { plainToClass } from 'class-transformer';
 import { meetingService, type MeetingService } from '../services/meeting.service';
 import { PathParamMeetingDto } from '../dtos/meeting.dto';
 import { validateDto } from '../handlers/validate-request.handler';
+import { handleRequestAndValidate } from '../handlers/handleRequestAndValidate'
 
 export class MeetingController {
     constructor (
         private readonly meetingService: MeetingService
     ) {}
 
-    async getAll (req: Request, res: Response, next: NextFunction): Promise<Response | void> {
-        try {
-            const meetings = await this.meetingService.getAll();
-            return res.status(200).json(meetings);
-        } catch (err: unknown) {
-            next(err);
-        }
-    }
-
+    getAll = handleRequestAndValidate(null, this.meetingService.getAll);
     async getById (req: Request<PathParamMeetingDto>, res: Response, next: NextFunction): Promise<Response | void> {
         // Transform req.params to object
         const pathParamMeetingDto = plainToClass(PathParamMeetingDto, req.params);

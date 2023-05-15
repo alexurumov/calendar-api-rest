@@ -3,7 +3,7 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-const DB_CONNECTION_STRING: string = process.env.DB_CONNECTION_STRING ?? 'mongodb://localhost:27018';
+const DB_CONNECTION_STRING: string = process.env.DB_CONNECTION_STRING ?? 'localhost:27018';
 const DB_NAME: string = process.env.DB_NAME ?? 'calendar-api';
 const DB_USERNAME: string = process.env.DB_USERNAME ?? 'root';
 const DB_PASS: string = process.env.DB_PASS ?? 'passroot';
